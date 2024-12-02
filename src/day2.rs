@@ -129,18 +129,38 @@ mod tests {
     }
 
     #[test]
-    fn can_refuse_big_jump_when_skipped_jump_is_still_too_big() {
-        assert_eq!(is_safe_with_tolerance("1 5 6"), false);
+    fn can_allow_big_jump_by_removing_second_item() {
+        assert_eq!(is_safe_with_tolerance("1 5 3"), true);
     }
 
     #[test]
-    fn can_allow_big_jump_when_skipped_jump_is_small() {
-        assert_eq!(is_safe_with_tolerance("1 5 3"), true);
+    fn can_refuse_big_jump_when_jump_too_big_without_either_item() {
+        assert_eq!(is_safe_with_tolerance("1 2 6 7"), false);
     }
 
     #[test]
     fn can_refuse_second_big_jump() {
         assert_eq!(is_safe_with_tolerance("1 5 3 7"), false);
+    }
+
+    #[test]
+    fn can_refuse_direction_change_after_big_jump() {
+        assert_eq!(is_safe_with_tolerance("1 2 6 1"), false);
+    }
+
+    #[test]
+    fn can_allow_one_direction_change() {
+        assert_eq!(is_safe_with_tolerance("1 2 1 3"), true);
+    }
+
+    #[test]
+    fn can_allow_duplicate_at_start() {
+        assert_eq!(is_safe_with_tolerance("1 1 2 3"), true);
+    }
+
+    #[test]
+    fn can_allow_duplicate_at_end() {
+        assert_eq!(is_safe_with_tolerance("1 2 3 3"), true);
     }
 
     fn parse_reports_as_vecs(string: &str) -> Vec<Vec<i32>> {
