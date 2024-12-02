@@ -19,18 +19,18 @@ impl Reports {
     }
 
     pub fn count_safe(&self) -> usize {
-        self.count_safe_with_tolerance_flag(false)
+        self.count(|report| report.is_safe())
     }
 
     pub fn count_safe_with_tolerance(&self) -> usize {
-        self.count_safe_with_tolerance_flag(true)
+        self.count(|report| report.is_safe_with_tolerance())
     }
 
-    fn count_safe_with_tolerance_flag(&self, tolerance: bool) -> usize {
-        self.reports
-            .iter()
-            .filter(|report| report.is_safe_with_tolerance_flag(tolerance))
-            .count()
+    fn count<P>(&self, predicate: P) -> usize
+    where
+        P: FnMut(&&Report) -> bool,
+    {
+        self.reports.iter().filter(predicate).count()
     }
 }
 
@@ -49,91 +49,42 @@ impl Report {
         }
     }
 
-    fn is_safe_with_tolerance_flag(&self, tolerance: bool) -> bool {
-        let mut pairs = self
+    fn is_safe_with_tolerance(&self) -> bool {
+        if self.is_safe() {
+            true
+        } else {
+            for i in 0..self.levels.len() {
+                if self.without_index(i).is_safe() {
+                    return true;
+                }
+            }
+            false
+        }
+    }
+
+    fn without_index(&self, index: usize) -> Report {
+        let mut levels = Vec::with_capacity(self.levels.len() - 1);
+        levels.extend_from_slice(&self.levels[0..index]);
+        levels.extend_from_slice(&self.levels[index + 1..]);
+        Report { levels }
+    }
+
+    fn is_safe(&self) -> bool {
+        let pairs = self
             .levels
             .iter()
             .enumerate()
-            .flat_map(|(index, level)| Pair::from(&self.levels, index, *level));
+            .flat_map(|(index, level)| self.levels.get(index + 1).map(|next| (*level, *next)));
         let mut found_diff: i32 = 0;
-        let mut remaining_tolerance = tolerance;
-        while let Some(pair) = pairs.next() {
-            if let Some(diff) =
-                pair.next_safe_diff(found_diff, &mut pairs, &mut remaining_tolerance)
-            {
-                if diff != 0 {
-                    found_diff = diff;
-                }
-            } else {
+        for (left, right) in pairs {
+            let diff = right - left;
+            if !is_diff_safe(diff, found_diff) {
                 return false;
+            } else if diff != 0 {
+                found_diff = diff;
             }
         }
         true
-    }
-}
-
-struct Pair {
-    before: Option<i32>,
-    left: i32,
-    right: i32,
-}
-
-impl Pair {
-    fn from(levels: &Vec<i32>, index: usize, left: i32) -> Option<Pair> {
-        levels.get(index + 1).map(|right| Pair {
-            before: match index {
-                0 => None,
-                i => Some(levels[i - 1]),
-            },
-            left,
-            right: *right,
-        })
-    }
-
-    fn next_safe_diff(
-        &self,
-        found_diff: i32,
-        mut pairs: impl Iterator<Item = Pair>,
-        remaining_tolerance: &mut bool,
-    ) -> Option<i32> {
-        let diff = self.diff();
-        if is_diff_safe(diff, found_diff) {
-            return Some(diff);
-        }
-        if !*remaining_tolerance {
-            return None;
-        }
-        *remaining_tolerance = false;
-        if let Some(next_pair) = pairs.next() {
-            let next = next_pair.right;
-            let skip_right_diff = self.skip_right_diff(next);
-            if is_diff_safe(skip_right_diff, found_diff) {
-                return Some(skip_right_diff);
-            }
-            if let Some(drop_first_diff) = self.drop_first_diff(next) {
-                if is_diff_safe(drop_first_diff, found_diff) {
-                    return Some(drop_first_diff);
-                }
-            }
-            None
-        } else {
-            Some(0)
-        }
-    }
-
-    fn diff(&self) -> i32 {
-        self.right - self.left
-    }
-
-    fn drop_first_diff(&self, next: i32) -> Option<i32> {
-        match self.before {
-            Some(_) => None,
-            None => Some(next - self.right),
-        }
-    }
-
-    fn skip_right_diff(&self, next: i32) -> i32 {
-        next - self.left
     }
 }
 
@@ -233,6 +184,6 @@ mod tests {
     }
 
     fn is_safe_with_tolerance(string: &str) -> bool {
-        Report::parse(string).is_safe_with_tolerance_flag(true)
+        Report::parse(string).is_safe_with_tolerance()
     }
 }
