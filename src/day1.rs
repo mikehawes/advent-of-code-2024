@@ -1,7 +1,8 @@
 use crate::input::input_to_string;
 use std::cmp::Ordering;
-use std::io;
+use std::iter::Peekable;
 use std::path::Path;
+use std::{io, slice};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Vectors {
@@ -13,6 +14,7 @@ impl Vectors {
     pub fn read_input<P: AsRef<Path>>(path: P) -> io::Result<Vectors> {
         Ok(Vectors::parse(&input_to_string(path)?))
     }
+
     pub fn parse(string: &str) -> Vectors {
         let mut left: Vec<i32> = vec![];
         let mut right: Vec<i32> = vec![];
@@ -38,21 +40,10 @@ impl Vectors {
     pub fn similarity(&self) -> i32 {
         let mut similarity = 0;
         let mut left_iter = self.left.iter();
-        let mut right_iter = self.right.iter();
+        let mut right_iter = self.right.iter().peekable();
         let mut left_cursor = left_iter.next();
-        let mut right_cursor = right_iter.next();
         while let Some(left) = left_cursor {
-            let mut frequency = 0;
-            while let Some(right) = right_cursor {
-                match right.cmp(left) {
-                    Ordering::Less => {}
-                    Ordering::Equal => {
-                        frequency += 1;
-                    }
-                    Ordering::Greater => break,
-                }
-                right_cursor = right_iter.next();
-            }
+            let frequency = scan_frequency(*left, &mut right_iter);
             loop {
                 similarity += left * frequency;
                 left_cursor = left_iter.next();
@@ -67,6 +58,21 @@ impl Vectors {
         }
         similarity
     }
+}
+
+fn scan_frequency(left: i32, right_iter: &mut Peekable<slice::Iter<i32>>) -> i32 {
+    let mut frequency = 0;
+    while let Some(right) = right_iter.peek() {
+        match left.cmp(*right) {
+            Ordering::Greater => {}
+            Ordering::Equal => {
+                frequency += 1;
+            }
+            Ordering::Less => break,
+        }
+        right_iter.next();
+    }
+    frequency
 }
 
 #[cfg(test)]
