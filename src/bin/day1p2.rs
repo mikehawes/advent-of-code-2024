@@ -1,5 +1,8 @@
-use advent_of_code_2024::day1::find_similarity_from_input;
+use advent_of_code_2024::day1::Vectors;
 
 fn main() {
-    print!("{}", find_similarity_from_input("day1/input.txt").unwrap());
+    print!(
+        "Result: {}",
+        Vectors::read_input("day1/input.txt").unwrap().similarity()
+    );
 }

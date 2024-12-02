@@ -1,8 +1,10 @@
-use advent_of_code_2024::day1::find_total_distance_from_input;
+use advent_of_code_2024::day1::Vectors;
 
 fn main() {
     print!(
-        "{}",
-        find_total_distance_from_input("day1/input.txt").unwrap()
+        "Result: {}",
+        Vectors::read_input("day1/input.txt")
+            .unwrap()
+            .total_distance()
     );
 }
