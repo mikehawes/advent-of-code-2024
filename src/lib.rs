@@ -1,2 +1,2 @@
-mod day1;
+pub mod day1;
 mod input;

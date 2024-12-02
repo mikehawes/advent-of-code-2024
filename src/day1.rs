@@ -2,12 +2,9 @@ use crate::input::input_to_string;
 use std::io;
 use std::path::Path;
 
-#[allow(dead_code)]
-fn find_total_distance_from_input<P: AsRef<Path>>(path: P) -> io::Result<i32> {
+pub fn find_total_distance_from_input<P: AsRef<Path>>(path: P) -> io::Result<i32> {
     let str = input_to_string(path)?;
-    let mut vectors = read_vectors(&str);
-    vectors.sort();
-    Ok(11)
+    Ok(read_vectors(&str).total_distance())
 }
 
 fn read_vectors(string: &str) -> Vectors {
@@ -18,6 +15,8 @@ fn read_vectors(string: &str) -> Vectors {
         left.push(parts.next().unwrap().parse().unwrap());
         right.push(parts.next().unwrap().parse().unwrap());
     }
+    left.sort();
+    right.sort();
     Vectors { left, right }
 }
 
@@ -28,9 +27,13 @@ struct Vectors {
 }
 
 impl Vectors {
-    fn sort(&mut self) {
-        self.left.sort();
-        self.right.sort();
+    fn total_distance(&self) -> i32 {
+        let mut total = 0;
+        for (i, left) in self.left.iter().enumerate() {
+            let right = self.right.get(i).unwrap();
+            total += (right - left).abs();
+        }
+        total
     }
 }
 
