@@ -92,26 +92,14 @@ mod tests {
 
     #[test]
     fn can_parse_line() {
-        assert_eq!(
-            Reports::parse("1 2 3").reports,
-            vec![Report {
-                levels: vec![1, 2, 3]
-            }]
-        )
+        assert_eq!(parse_reports_as_vecs("1 2 3"), vec![vec![1, 2, 3]])
     }
 
     #[test]
     fn can_parse_lines() {
         assert_eq!(
-            Reports::parse("1 2 3\n4 5 6").reports,
-            vec![
-                Report {
-                    levels: vec![1, 2, 3]
-                },
-                Report {
-                    levels: vec![4, 5, 6]
-                }
-            ]
+            parse_reports_as_vecs("1 2 3\n4 5 6"),
+            vec![vec![1, 2, 3], vec![4, 5, 6]]
         )
     }
 
@@ -132,25 +120,38 @@ mod tests {
 
     #[test]
     fn can_tolerate_one_duplicate() {
-        assert_eq!(
-            Report::parse("1 2 3 3 4").is_safe_with_tolerance_flag(true),
-            true
-        );
+        assert_eq!(is_safe_with_tolerance("1 2 3 3 4"), true);
     }
 
     #[test]
     fn can_refuse_two_duplicates() {
-        assert_eq!(
-            Report::parse("1 1 2 2").is_safe_with_tolerance_flag(true),
-            false
-        );
+        assert_eq!(is_safe_with_tolerance("1 1 2 2"), false);
     }
 
     #[test]
     fn can_refuse_big_jump_when_skipped_jump_is_still_too_big() {
-        assert_eq!(
-            Report::parse("1 5 6").is_safe_with_tolerance_flag(true),
-            false
-        );
+        assert_eq!(is_safe_with_tolerance("1 5 6"), false);
+    }
+
+    #[test]
+    fn can_allow_big_jump_when_skipped_jump_is_small() {
+        assert_eq!(is_safe_with_tolerance("1 5 3"), true);
+    }
+
+    #[test]
+    fn can_refuse_second_big_jump() {
+        assert_eq!(is_safe_with_tolerance("1 5 3 7"), false);
+    }
+
+    fn parse_reports_as_vecs(string: &str) -> Vec<Vec<i32>> {
+        Reports::parse(string)
+            .reports
+            .iter()
+            .map(|report| report.levels.clone())
+            .collect()
+    }
+
+    fn is_safe_with_tolerance(string: &str) -> bool {
+        Report::parse(string).is_safe_with_tolerance_flag(true)
     }
 }
