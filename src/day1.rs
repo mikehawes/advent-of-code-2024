@@ -1,10 +1,16 @@
 use crate::input::input_to_string;
+use std::cmp::Ordering;
 use std::io;
 use std::path::Path;
 
 pub fn find_total_distance_from_input<P: AsRef<Path>>(path: P) -> io::Result<i32> {
     let str = input_to_string(path)?;
     Ok(read_vectors(&str).total_distance())
+}
+
+pub fn find_similarity_from_input<P: AsRef<Path>>(path: P) -> io::Result<i32> {
+    let str = input_to_string(path)?;
+    Ok(read_vectors(&str).similarity())
 }
 
 fn read_vectors(string: &str) -> Vectors {
@@ -35,6 +41,39 @@ impl Vectors {
         }
         total
     }
+
+    fn similarity(&self) -> i32 {
+        let mut similarity = 0;
+        let mut left_iter = self.left.iter();
+        let mut right_iter = self.right.iter();
+        let mut left_cursor = left_iter.next();
+        let mut right_cursor = right_iter.next();
+        while let Some(left) = left_cursor {
+            let mut frequency = 0;
+            while let Some(right) = right_cursor {
+                match right.cmp(left) {
+                    Ordering::Less => {}
+                    Ordering::Equal => {
+                        frequency += 1;
+                    }
+                    Ordering::Greater => break,
+                }
+                right_cursor = right_iter.next();
+            }
+            loop {
+                similarity += left * frequency;
+                left_cursor = left_iter.next();
+                if let Some(next) = left_cursor {
+                    if next != left {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+        similarity
+    }
 }
 
 #[cfg(test)]
@@ -45,6 +84,19 @@ mod tests {
     fn can_find_example_distance() -> io::Result<()> {
         let result = find_total_distance_from_input("day1/example.txt")?;
         assert_eq!(result, 11);
+        Ok(())
+    }
+
+    #[test]
+    fn can_find_example_similarity() -> io::Result<()> {
+        let result = find_similarity_from_input("day1/example.txt")?;
+        assert_eq!(result, 31);
+        Ok(())
+    }
+
+    #[test]
+    fn can_find_similarity_when_last_right_is_in_left() -> io::Result<()> {
+        assert_eq!(read_vectors("1   2\n2   2").similarity(), 4);
         Ok(())
     }
 
