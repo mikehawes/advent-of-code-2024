@@ -1,3 +1,6 @@
+mod operations;
+
+use operations::{Configure, Context, Multiplication, Operation};
 use regex::{Captures, Regex};
 use std::str::FromStr;
 
@@ -27,50 +30,9 @@ impl Operations {
         }
     }
     pub fn run(&self) -> i32 {
-        let mut context = Context {
-            multiplication_enabled: true,
-            total: 0,
-        };
+        let mut context = Context::new();
         self.operations.iter().for_each(|op| op.apply(&mut context));
-        context.total
-    }
-}
-
-struct Context {
-    multiplication_enabled: bool,
-    total: i32,
-}
-
-trait Operation {
-    fn apply(&self, context: &mut Context);
-}
-
-struct Multiplication {
-    a: i32,
-    b: i32,
-}
-
-impl Operation for Multiplication {
-    fn apply(&self, context: &mut Context) {
-        if context.multiplication_enabled {
-            context.total += self.result();
-        }
-    }
-}
-
-impl Multiplication {
-    fn result(&self) -> i32 {
-        self.a * self.b
-    }
-}
-
-struct Configure {
-    multiplication_enabled: bool,
-}
-
-impl Operation for Configure {
-    fn apply(&self, context: &mut Context) {
-        context.multiplication_enabled = self.multiplication_enabled
+        context.result()
     }
 }
 
