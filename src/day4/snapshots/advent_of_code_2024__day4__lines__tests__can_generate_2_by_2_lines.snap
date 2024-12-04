@@ -1,0 +1,29 @@
+---
+source: src/day4/lines.rs
+assertion_line: 65
+expression: "print_lines(2, 2).unwrap()"
+snapshot_kind: text
+---
+12
+..
+
+..
+12
+
+1.
+2.
+
+.1
+.2
+
+1.
+.2
+
+.1
+..
+
+1.
+.2
+
+..
+1.

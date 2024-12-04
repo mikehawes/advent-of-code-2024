@@ -2,6 +2,7 @@ use crate::day4::find_cursor::FindCursor;
 use crate::day4::search_cursor::SearchCursor;
 
 mod find_cursor;
+mod lines;
 mod search_cursor;
 
 #[derive(Debug, Eq, PartialEq)]
