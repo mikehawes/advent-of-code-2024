@@ -28,14 +28,29 @@ fn vertical_from_top(x: usize, height: usize) -> Line {
     progress.map(move |y| (x, y)).collect()
 }
 fn generate_diagonals(width: usize, height: usize) -> Box<LinesIter> {
-    let from_top = generate_diagonals_from_top(width, height);
-    let from_side = generate_diagonals_from_side(width, height);
-    Box::new(from_top.chain(from_side))
+    let down_right = generate_diagonals_down_right(width, height);
+    let up_right = generate_diagonals_up_right(width, height);
+    Box::new(down_right.chain(up_right))
 }
 
-fn generate_diagonals_from_top(width: usize, height: usize) -> Box<LinesIter> {
-    let starts_at_top = 0..width;
-    Box::new(starts_at_top.map(move |x| diagonal_from_top(width, height, x)))
+fn generate_diagonals_down_right(width: usize, height: usize) -> Box<LinesIter> {
+    let starts_at_top = 0..(width - 1);
+    let starts_at_side = 1..(height - 1);
+    Box::new(
+        starts_at_top
+            .map(move |x| diagonal_from_top(width, height, x))
+            .chain(starts_at_side.map(move |y| diagonal_from_side_down(width, height, y))),
+    )
+}
+
+fn generate_diagonals_up_right(width: usize, height: usize) -> Box<LinesIter> {
+    let starts_at_bottom = 0..(width - 1);
+    let starts_at_side = 1..(height - 1);
+    Box::new(
+        starts_at_bottom
+            .map(move |x| diagonal_from_bottom(width, height, x))
+            .chain(starts_at_side.map(move |y| diagonal_from_side_up(width, y))),
+    )
 }
 
 fn diagonal_from_top(width: usize, height: usize, x: usize) -> Line {
@@ -43,14 +58,21 @@ fn diagonal_from_top(width: usize, height: usize, x: usize) -> Line {
     diffs.map(move |diff| (x + diff, diff)).collect()
 }
 
-fn generate_diagonals_from_side(width: usize, height: usize) -> Box<LinesIter> {
-    let starts_at_side = 0..height;
-    Box::new(starts_at_side.map(move |y| diagonal_from_side(width, height, y)))
+fn diagonal_from_bottom(width: usize, height: usize, x: usize) -> Line {
+    let diffs = 0..min(height, width - x);
+    diffs
+        .map(move |diff| (x + diff, height - diff - 1))
+        .collect()
 }
 
-fn diagonal_from_side(width: usize, height: usize, y: usize) -> Line {
+fn diagonal_from_side_down(width: usize, height: usize, y: usize) -> Line {
     let diffs = 0..min(width, height - y);
     diffs.map(move |diff| (diff, y + diff)).collect()
+}
+
+fn diagonal_from_side_up(width: usize, y: usize) -> Line {
+    let diffs = 0..min(width, y + 1);
+    diffs.map(move |diff| (diff, y - diff)).collect()
 }
 
 #[cfg(test)]
@@ -63,6 +85,16 @@ mod tests {
     #[test]
     fn can_generate_2_by_2_lines() {
         assert_snapshot!(print_lines(2, 2).unwrap())
+    }
+
+    #[test]
+    fn can_generate_3_by_3_lines() {
+        assert_snapshot!(print_lines(3, 3).unwrap())
+    }
+
+    #[test]
+    fn can_generate_4_by_4_lines() {
+        assert_snapshot!(print_lines(4, 4).unwrap())
     }
 
     fn print_lines(width: usize, height: usize) -> Result<String, Error> {

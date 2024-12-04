@@ -1,9 +1,8 @@
 use crate::day4::find_cursor::FindCursor;
-use crate::day4::search_cursor::SearchCursor;
+use crate::day4::lines::{generate_lines, Point};
 
 mod find_cursor;
 mod lines;
-mod search_cursor;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct WordSearch {
@@ -19,47 +18,28 @@ impl WordSearch {
     }
 
     pub fn count_xmas(&self) -> i32 {
-        count_horizontal_matches(self, "XMAS") + count_vertical_matches(self, "XMAS")
+        let mut matches = 0;
+        let mut find_cursor = FindCursor::start("XMAS");
+        for line in generate_lines(self.width, self.tiles.len()) {
+            for point in &line {
+                if find_cursor.check_match_advance(self.char(point)) {
+                    matches += 1;
+                }
+            }
+            find_cursor.reset();
+            for point in line.iter().rev() {
+                if find_cursor.check_match_advance(self.char(point)) {
+                    matches += 1;
+                }
+            }
+            find_cursor.reset();
+        }
+        matches
     }
-}
 
-fn count_horizontal_matches(word_search: &WordSearch, find: &str) -> i32 {
-    let mut search_cursor = SearchCursor::top_left(word_search);
-    let mut find_cursor = FindCursor::start(find);
-    let mut matches = 0;
-    loop {
-        loop {
-            if find_cursor.check_match_advance(search_cursor.char().unwrap()) {
-                matches += 1;
-            }
-            if !search_cursor.advance_x() {
-                break;
-            }
-        }
-        find_cursor.reset();
-        if !search_cursor.advance_y_reset_x() {
-            return matches;
-        }
-    }
-}
-
-fn count_vertical_matches(word_search: &WordSearch, find: &str) -> i32 {
-    let mut search_cursor = SearchCursor::top_left(word_search);
-    let mut find_cursor = FindCursor::start(find);
-    let mut matches = 0;
-    loop {
-        loop {
-            if find_cursor.check_match_advance(search_cursor.char().unwrap()) {
-                matches += 1;
-            }
-            if !search_cursor.advance_y() {
-                break;
-            }
-        }
-        find_cursor.reset();
-        if !search_cursor.advance_x_reset_y() {
-            return matches;
-        }
+    fn char(&self, point: &Point) -> char {
+        let (x, y) = *point;
+        self.tiles[y][x]
     }
 }
 
@@ -109,7 +89,7 @@ mod tests {
                    __A_\n\
                    ___S",
         );
-        assert_eq!(word_search.count_xmas(), 0)
+        assert_eq!(word_search.count_xmas(), 1)
     }
 
     #[test]
