@@ -19,6 +19,9 @@ impl FindCursor {
     pub fn reset(&mut self) {
         self.find_index = 0;
     }
+    pub fn is_finished(&self) -> bool {
+        self.find_index == self.find.len()
+    }
 }
 
 impl Iterator for FindCursor {
@@ -26,7 +29,9 @@ impl Iterator for FindCursor {
 
     fn next(&mut self) -> Option<Self::Item> {
         let char = self.char();
-        self.advance();
+        if char.is_some() {
+            self.advance();
+        }
         char
     }
 }
@@ -44,11 +49,11 @@ mod tests {
     #[test]
     fn can_reset() {
         let mut cursor = FindCursor::start("AB");
-        let first = vec![cursor.next(), cursor.next(), cursor.next()];
+        let first = [cursor.next(), cursor.next(), cursor.next()];
         cursor.reset();
-        let second = vec![cursor.next(), cursor.next(), cursor.next()];
+        let second = [cursor.next(), cursor.next(), cursor.next()];
 
-        assert_eq!(first, vec![Some('A'), Some('B'), None]);
-        assert_eq!(second, vec![Some('A'), Some('B'), None]);
+        assert_eq!(first, [Some('A'), Some('B'), None]);
+        assert_eq!(second, [Some('A'), Some('B'), None]);
     }
 }
