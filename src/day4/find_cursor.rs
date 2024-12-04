@@ -13,6 +13,20 @@ impl FindCursor {
     pub fn char(&self) -> Option<char> {
         self.find.get(self.find_index).copied()
     }
+    pub fn check_match_advance(&mut self, check: char) -> bool {
+        if let Some(c) = self.char() {
+            if c == check {
+                self.advance();
+                if self.is_finished() {
+                    self.reset();
+                    return true;
+                }
+            } else {
+                self.reset();
+            }
+        }
+        false
+    }
     pub fn advance(&mut self) {
         self.find_index += 1;
     }

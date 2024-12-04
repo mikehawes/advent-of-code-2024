@@ -18,7 +18,7 @@ impl WordSearch {
     }
 
     pub fn count_xmas(&self) -> i32 {
-        count_horizontal_matches(self, "XMAS")
+        count_horizontal_matches(self, "XMAS") + count_vertical_matches(self, "XMAS")
     }
 }
 
@@ -28,20 +28,35 @@ fn count_horizontal_matches(word_search: &WordSearch, find: &str) -> i32 {
     let mut matches = 0;
     loop {
         loop {
-            if search_cursor.char() == find_cursor.char() {
-                find_cursor.advance();
-                if find_cursor.is_finished() {
-                    find_cursor.reset();
-                    matches += 1;
-                }
-            } else {
-                find_cursor.reset();
+            if find_cursor.check_match_advance(search_cursor.char().unwrap()) {
+                matches += 1;
             }
             if !search_cursor.advance_x() {
                 break;
             }
         }
-        if !search_cursor.advance_y() {
+        find_cursor.reset();
+        if !search_cursor.advance_y_reset_x() {
+            return matches;
+        }
+    }
+}
+
+fn count_vertical_matches(word_search: &WordSearch, find: &str) -> i32 {
+    let mut search_cursor = SearchCursor::top_left(word_search);
+    let mut find_cursor = FindCursor::start(find);
+    let mut matches = 0;
+    loop {
+        loop {
+            if find_cursor.check_match_advance(search_cursor.char().unwrap()) {
+                matches += 1;
+            }
+            if !search_cursor.advance_y() {
+                break;
+            }
+        }
+        find_cursor.reset();
+        if !search_cursor.advance_x_reset_y() {
             return matches;
         }
     }
@@ -71,6 +86,29 @@ mod tests {
     fn can_find_xmas_two_lines() {
         let word_search = WordSearch::parse("XMAS\nXMAS");
         assert_eq!(word_search.count_xmas(), 2)
+    }
+
+    #[test]
+    fn can_find_xmas_one_of_two_lines() {
+        let word_search = WordSearch::parse("XMAS\nXMEN");
+        assert_eq!(word_search.count_xmas(), 1)
+    }
+
+    #[test]
+    fn can_find_xmas_over_lines() {
+        let word_search = WordSearch::parse("X\nM\nA\nS");
+        assert_eq!(word_search.count_xmas(), 1)
+    }
+
+    #[test]
+    fn can_find_xmas_diagonal() {
+        let word_search = WordSearch::parse(
+            "X___\n\
+                   _M__\n\
+                   __A_\n\
+                   ___S",
+        );
+        assert_eq!(word_search.count_xmas(), 0)
     }
 
     #[test]

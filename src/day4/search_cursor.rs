@@ -17,12 +17,8 @@ impl<'a> SearchCursor<'a> {
             .and_then(|line| line.get(self.x).copied())
     }
     pub fn advance_x(&mut self) -> bool {
-        if self.x < self.search.width {
-            self.x += 1;
-            true
-        } else {
-            false
-        }
+        self.x += 1;
+        self.x < self.search.width
     }
     pub fn next_x(&mut self) -> Option<char> {
         let char = self.char();
@@ -32,16 +28,20 @@ impl<'a> SearchCursor<'a> {
     pub fn reset_x(&mut self) {
         self.x = 0;
     }
-
+    pub fn reset_y(&mut self) {
+        self.y = 0;
+    }
     pub fn advance_y(&mut self) -> bool {
-        let next_y = self.y + 1;
-        if next_y < self.search.tiles.len() {
-            self.y = next_y;
-            self.reset_x();
-            true
-        } else {
-            false
-        }
+        self.y += 1;
+        self.y < self.search.tiles.len()
+    }
+    pub fn advance_y_reset_x(&mut self) -> bool {
+        self.reset_x();
+        self.advance_y()
+    }
+    pub fn advance_x_reset_y(&mut self) -> bool {
+        self.reset_y();
+        self.advance_x()
     }
 }
 
@@ -85,9 +85,9 @@ mod tests {
         let word_search = WordSearch::parse("A\nB");
         let mut cursor = SearchCursor::top_left(&word_search);
         let a = cursor.next_x();
-        let a_to_b = cursor.advance_y();
+        let a_to_b = cursor.advance_y_reset_x();
         let b = cursor.next_x();
-        let b_to_end = cursor.advance_y();
+        let b_to_end = cursor.advance_y_reset_x();
         assert_eq!(
             (a, a_to_b, b, b_to_end),
             (Some('A'), true, Some('B'), false)
