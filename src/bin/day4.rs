@@ -1,0 +1,8 @@
+use advent_of_code_2024::day4::WordSearch;
+use advent_of_code_2024::input::input_to_string;
+
+fn main() {
+    let input = input_to_string("day4/input.txt").unwrap();
+    let word_search = WordSearch::parse(input.as_str());
+    println!("Part 1: {}", word_search.count_xmas());
+}
