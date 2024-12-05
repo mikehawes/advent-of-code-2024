@@ -35,6 +35,6 @@ mod tests {
     fn can_sum_correct_middle_pages_for_example() {
         let example = input_to_string("day5/example.txt").unwrap();
         let ordering = PageOrdering::parse(example.as_str());
-        assert_eq!(ordering.sum_correct_middle_pages(), 278);
+        assert_eq!(ordering.sum_correct_middle_pages(), 143);
     }
 }

@@ -17,6 +17,14 @@ impl Update {
         Update { pages }
     }
 
+    pub fn pairs(&self) -> impl Iterator<Item = (i32, i32)> + use<'_> {
+        self.pages
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| *i < self.pages.len() - 1)
+            .map(|(i, page)| (*page, self.pages[i + 1]))
+    }
+
     pub fn middle(&self) -> i32 {
         self.pages[self.pages.len() / 2]
     }
@@ -35,6 +43,12 @@ mod tests {
     fn can_find_middle_page_when_odd() {
         let update = Update::parse("1,2,3");
         assert_eq!(update.middle(), 2);
+    }
+
+    #[test]
+    fn can_find_pairs() {
+        let pairs: Vec<(i32, i32)> = Update::parse("1,2,3").pairs().collect();
+        assert_eq!(pairs, vec![(1, 2), (2, 3)])
     }
 
     fn parse_to_vecs(string: &str) -> Vec<Vec<i32>> {

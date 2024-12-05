@@ -4,7 +4,6 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
 pub struct PageOrderIndex {
-    lower_pages: HashMap<i32, Vec<i32>>,
     higher_pages: HashMap<i32, Vec<i32>>,
 }
 
@@ -13,19 +12,25 @@ impl PageOrderIndex {
         Self::from_rules(PageOrderingRule::parse_to_vec(string))
     }
     pub fn from_rules(rules: Vec<PageOrderingRule>) -> PageOrderIndex {
-        let mut lower_pages = HashMap::new();
         let mut higher_pages = HashMap::new();
         for rule in rules {
-            insert_index(&mut lower_pages, rule.higher_page, rule.lower_page);
             insert_index(&mut higher_pages, rule.lower_page, rule.higher_page);
         }
-        PageOrderIndex {
-            lower_pages,
-            higher_pages,
-        }
+        PageOrderIndex { higher_pages }
     }
     pub fn matches(&self, update: &Update) -> bool {
-        true
+        update
+            .pairs()
+            .all(|(left, right)| self.pair_matches(left, right))
+    }
+    fn pair_matches(&self, left: i32, right: i32) -> bool {
+        if let Some(higher) = self.higher_pages.get(&right) {
+            higher
+                .iter()
+                .all(|h| *h != left && self.pair_matches(left, *h))
+        } else {
+            true
+        }
     }
 }
 
@@ -46,10 +51,6 @@ mod tests {
     fn can_build_index_from_rules() {
         let index = PageOrderIndex::parse_rules("1|2\n2|3\n3|4");
         assert_eq!(
-            index.lower_pages,
-            HashMap::from([(2, vec![1]), (3, vec![2]), (4, vec![3])])
-        );
-        assert_eq!(
             index.higher_pages,
             HashMap::from([(1, vec![2]), (2, vec![3]), (3, vec![4])])
         )
@@ -59,5 +60,11 @@ mod tests {
     fn can_check_order_matches_rules() {
         let index = PageOrderIndex::parse_rules("1|2\n2|3\n3|4");
         assert_eq!(index.matches(&Update::parse("1,2,3")), true)
+    }
+
+    #[test]
+    fn can_check_order_violates_rule() {
+        let index = PageOrderIndex::parse_rules("1|2");
+        assert_eq!(index.matches(&Update::parse("2,1")), false)
     }
 }
