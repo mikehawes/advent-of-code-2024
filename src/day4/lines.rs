@@ -75,53 +75,111 @@ fn diagonal_from_side_up(width: usize, y: usize) -> Line {
     diffs.map(move |diff| (diff, y - diff)).collect()
 }
 
+pub fn generate_x_lines(width: usize, height: usize) -> Box<LinesIter> {
+    Box::new(
+        at_x_positions(width, height, generate_right_x)
+            .chain(at_x_positions(width, height, generate_left_x))
+            .chain(at_x_positions(width, height, generate_up_x))
+            .chain(at_x_positions(width, height, generate_down_x)),
+    )
+}
+
+fn at_x_positions(
+    width: usize,
+    height: usize,
+    generator: fn(x: usize, y: usize) -> Line,
+) -> Box<LinesIter> {
+    Box::new((0..=(width - 3)).flat_map(move |x| (0..=(height - 3)).map(move |y| generator(x, y))))
+}
+
+fn generate_right_x(x: usize, y: usize) -> Line {
+    (0..3)
+        .map(|n| (n + x, n + y))
+        .chain((0..3).map(|n| (n + x, 2 - n + y)))
+        .collect()
+}
+
+fn generate_left_x(x: usize, y: usize) -> Line {
+    (0..3)
+        .map(|n| (2 - n + x, n + y))
+        .chain((0..3).map(|n| (2 - n + x, 2 - n + y)))
+        .collect()
+}
+
+fn generate_up_x(x: usize, y: usize) -> Line {
+    (0..3)
+        .map(|n| (n + x, 2 - n + y))
+        .chain((0..3).map(|n| (2 - n + x, 2 - n + y)))
+        .collect()
+}
+
+fn generate_down_x(x: usize, y: usize) -> Line {
+    (0..3)
+        .map(|n| (n + x, n + y))
+        .chain((0..3).map(|n| (2 - n + x, n + y)))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use insta::assert_snapshot;
     use std::collections::HashMap;
-    use std::fmt::{Error, Write};
+    use std::fmt::Write;
 
     #[test]
     fn can_generate_2_by_2_lines() {
-        assert_snapshot!(print_lines(2, 2).unwrap())
+        assert_snapshot!(print_lines(2, 2))
     }
 
     #[test]
     fn can_generate_3_by_3_lines() {
-        assert_snapshot!(print_lines(3, 3).unwrap())
+        assert_snapshot!(print_lines(3, 3))
     }
 
     #[test]
     fn can_generate_4_by_4_lines() {
-        assert_snapshot!(print_lines(4, 4).unwrap())
+        assert_snapshot!(print_lines(4, 4))
     }
 
     #[test]
     fn can_generate_10_by_10_lines() {
-        assert_snapshot!(print_lines(10, 10).unwrap())
+        assert_snapshot!(print_lines(10, 10))
     }
 
-    fn print_lines(width: usize, height: usize) -> Result<String, Error> {
+    #[test]
+    fn can_generate_x_lines() {
+        assert_snapshot!(print_x_lines(4, 4))
+    }
+
+    fn print_lines(width: usize, height: usize) -> String {
+        print_lines_iter(generate_lines(width, height), width, height)
+    }
+
+    fn print_x_lines(width: usize, height: usize) -> String {
+        print_lines_iter(generate_x_lines(width, height), width, height)
+    }
+
+    fn print_lines_iter(lines: Box<LinesIter>, width: usize, height: usize) -> String {
         let mut str: String = "".to_owned();
-        print_lines_iter(generate_lines(width, height), width, height, &mut str)?;
-        Ok(str)
+        write_lines_iter(lines, width, height, &mut str).unwrap();
+        str
     }
 
-    fn print_lines_iter<W: Write>(
+    fn write_lines_iter<W: Write>(
         lines: Box<LinesIter>,
         width: usize,
         height: usize,
         out: &mut W,
     ) -> std::fmt::Result {
         for line in lines {
-            print_line(line, width, height, out)?;
+            write_line(line, width, height, out)?;
             out.write_char('\n')?
         }
         Ok(())
     }
 
-    fn print_line<W: Write>(
+    fn write_line<W: Write>(
         line: Line,
         width: usize,
         height: usize,
