@@ -1,4 +1,4 @@
-use advent_of_code_2024::day4::WordSearch;
+use advent_of_code_2024::day4::word_search::WordSearch;
 use advent_of_code_2024::input::input_to_string;
 
 fn main() {

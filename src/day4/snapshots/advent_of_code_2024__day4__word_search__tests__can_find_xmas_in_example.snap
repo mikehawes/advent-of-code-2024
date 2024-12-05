@@ -1,5 +1,5 @@
 ---
-source: src/day4.rs
+source: src/day4/word_search.rs
 expression: "print_relevant_points(&word_search, &points)"
 snapshot_kind: text
 ---
