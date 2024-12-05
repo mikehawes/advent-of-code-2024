@@ -17,15 +17,24 @@ impl FindCursor {
         if let Some(c) = self.char() {
             if c == check {
                 self.advance();
-                if self.is_finished() {
-                    self.reset();
-                    return true;
-                }
+                return true;
             } else {
                 self.reset();
+                if check == self.find[0] {
+                    self.advance();
+                    return true;
+                }
             }
         }
         false
+    }
+    pub fn reset_if_finished(&mut self) -> bool {
+        if self.is_finished() {
+            self.reset();
+            true
+        } else {
+            false
+        }
     }
     pub fn advance(&mut self) {
         self.find_index += 1;

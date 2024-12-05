@@ -1,0 +1,15 @@
+---
+source: src/day4.rs
+expression: "print_relevant_points(&word_search, &points)"
+snapshot_kind: text
+---
+....XXMAS.
+.SAMXMS...
+...S..A...
+..A.A.MS.X
+XMASAMX.MM
+X.....XA.A
+S.S.S.SXSS
+.A.A.A.A.A
+..M.M.M.MM
+.X.X.XMASX

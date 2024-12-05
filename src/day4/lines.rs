@@ -34,22 +34,22 @@ fn generate_diagonals(width: usize, height: usize) -> Box<LinesIter> {
 }
 
 fn generate_diagonals_down_right(width: usize, height: usize) -> Box<LinesIter> {
+    let starts_at_side = (1..(height - 1)).rev();
     let starts_at_top = 0..(width - 1);
-    let starts_at_side = 1..(height - 1);
     Box::new(
-        starts_at_top
-            .map(move |x| diagonal_from_top(width, height, x))
-            .chain(starts_at_side.map(move |y| diagonal_from_side_down(width, height, y))),
+        starts_at_side
+            .map(move |y| diagonal_from_side_down(width, height, y))
+            .chain(starts_at_top.map(move |x| diagonal_from_top(width, height, x))),
     )
 }
 
 fn generate_diagonals_up_right(width: usize, height: usize) -> Box<LinesIter> {
-    let starts_at_bottom = 0..(width - 1);
     let starts_at_side = 1..(height - 1);
+    let starts_at_bottom = 0..(width - 1);
     Box::new(
-        starts_at_bottom
-            .map(move |x| diagonal_from_bottom(width, height, x))
-            .chain(starts_at_side.map(move |y| diagonal_from_side_up(width, y))),
+        starts_at_side
+            .map(move |y| diagonal_from_side_up(width, y))
+            .chain(starts_at_bottom.map(move |x| diagonal_from_bottom(width, height, x))),
     )
 }
 
@@ -95,6 +95,11 @@ mod tests {
     #[test]
     fn can_generate_4_by_4_lines() {
         assert_snapshot!(print_lines(4, 4).unwrap())
+    }
+
+    #[test]
+    fn can_generate_10_by_10_lines() {
+        assert_snapshot!(print_lines(10, 10).unwrap())
     }
 
     fn print_lines(width: usize, height: usize) -> Result<String, Error> {
