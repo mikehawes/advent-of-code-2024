@@ -1,9 +1,8 @@
 use std::str::FromStr;
 
-#[derive(Debug, Eq, PartialEq)]
 pub struct PageOrderingRule {
-    lower_page: i32,
-    higher_page: i32,
+    pub lower_page: i32,
+    pub higher_page: i32,
 }
 
 impl PageOrderingRule {
