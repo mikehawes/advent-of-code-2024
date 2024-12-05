@@ -21,49 +21,60 @@ impl WordSearch {
     }
 
     fn count_xmas_find_points(&self) -> (i32, HashSet<Point>) {
-        let mut matches = 0;
-        let mut find_cursor = FindCursor::start("XMAS");
-        let mut points = HashSet::new();
-        let mut current_points = HashSet::new();
+        let mut search = Search::new(self, "XMAS");
         for line in generate_lines(self.width, self.tiles.len()) {
-            for point in &line {
-                if find_cursor.check_match_advance(self.char(point)) {
-                    current_points.insert(*point);
-                    if find_cursor.reset_if_finished() {
-                        matches += 1;
-                        current_points.iter().for_each(|p| {
-                            points.insert(*p);
-                        });
-                        current_points.clear();
-                    }
-                } else {
-                    current_points.clear();
-                }
-            }
-            current_points.clear();
-            find_cursor.reset();
-            for point in line.iter().rev() {
-                if find_cursor.check_match_advance(self.char(point)) {
-                    current_points.insert(*point);
-                    if find_cursor.reset_if_finished() {
-                        matches += 1;
-                        current_points.iter().for_each(|p| {
-                            points.insert(*p);
-                        });
-                        current_points.clear();
-                    }
-                } else {
-                    current_points.clear();
-                }
-            }
-            find_cursor.reset();
+            search.check_line(line.iter());
+            search.check_line(line.iter().rev());
         }
-        (matches, points)
+        (search.matches, search.relevant_points)
     }
 
     fn char(&self, point: &Point) -> char {
         let (x, y) = *point;
         self.tiles[y][x]
+    }
+}
+
+struct Search<'a> {
+    word_search: &'a WordSearch,
+    find_cursor: FindCursor,
+    matches: i32,
+    relevant_points: HashSet<Point>,
+    current_points: HashSet<Point>,
+}
+
+impl Search<'_> {
+    fn new<'a>(word_search: &'a WordSearch, string: &str) -> Search<'a> {
+        Search {
+            word_search,
+            find_cursor: FindCursor::start(string),
+            matches: 0,
+            relevant_points: HashSet::new(),
+            current_points: HashSet::new(),
+        }
+    }
+    fn check_line<'a, L>(&mut self, line: L)
+    where
+        L: Iterator<Item = &'a Point>,
+    {
+        self.find_cursor.reset();
+        for point in line {
+            if self
+                .find_cursor
+                .check_match_advance(self.word_search.char(point))
+            {
+                self.current_points.insert(*point);
+                if self.find_cursor.reset_if_finished() {
+                    self.matches += 1;
+                    self.current_points.iter().for_each(|p| {
+                        self.relevant_points.insert(*p);
+                    });
+                    self.current_points.clear();
+                }
+            } else {
+                self.current_points.clear();
+            }
+        }
     }
 }
 
