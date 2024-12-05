@@ -1,4 +1,4 @@
-use advent_of_code_2024::day5::ordering::PageOrdering;
+use advent_of_code_2024::day5::page_ordering::PageOrdering;
 use advent_of_code_2024::input::input_to_string;
 
 fn main() {

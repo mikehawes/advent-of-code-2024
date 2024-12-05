@@ -1,4 +1,4 @@
 mod order_index;
-pub mod ordering;
+pub mod page_ordering;
 mod rule;
 mod update;
