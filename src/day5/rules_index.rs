@@ -1,22 +1,24 @@
-use crate::day5::rule::PageOrderingRule;
+use crate::day5::page_ordering_rule::PageOrderingRule;
 use crate::day5::update::Update;
+use std::cmp::Ordering;
+use std::cmp::Ordering::{Equal, Greater, Less};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
-pub struct PageOrderIndex {
+pub struct RulesIndex {
     lower_pages: HashMap<i32, HashSet<i32>>,
 }
 
-impl PageOrderIndex {
-    pub fn parse_rules(string: &str) -> PageOrderIndex {
+impl RulesIndex {
+    pub fn parse_rules(string: &str) -> RulesIndex {
         Self::from_rules(PageOrderingRule::parse_to_vec(string))
     }
-    pub fn from_rules(rules: Vec<PageOrderingRule>) -> PageOrderIndex {
+    pub fn from_rules(rules: Vec<PageOrderingRule>) -> RulesIndex {
         let mut lower_pages = HashMap::new();
         for rule in rules {
             insert_index(&mut lower_pages, rule.higher_page, rule.lower_page);
         }
-        PageOrderIndex { lower_pages }
+        RulesIndex { lower_pages }
     }
     pub fn matches(&self, update: &Update) -> bool {
         update.pages().enumerate().all(|(i, page)| {
@@ -26,6 +28,19 @@ impl PageOrderIndex {
                 true
             }
         })
+    }
+    pub fn compare(&self, left: i32, right: i32) -> Ordering {
+        if let Some(lowers) = self.lower_pages.get(&right) {
+            if lowers.contains(&left) {
+                return Less;
+            }
+        }
+        if let Some(lowers) = self.lower_pages.get(&left) {
+            if lowers.contains(&right) {
+                return Greater;
+            }
+        }
+        Equal
     }
 }
 
@@ -44,7 +59,7 @@ mod tests {
 
     #[test]
     fn can_build_index_from_rules() {
-        let index = PageOrderIndex::parse_rules("1|2\n2|3\n3|4");
+        let index = RulesIndex::parse_rules("1|2\n2|3\n3|4");
         assert_eq!(
             index.lower_pages,
             HashMap::from([
@@ -57,13 +72,13 @@ mod tests {
 
     #[test]
     fn can_check_order_matches_rules() {
-        let index = PageOrderIndex::parse_rules("1|2\n2|3\n3|4");
+        let index = RulesIndex::parse_rules("1|2\n2|3\n3|4");
         assert_eq!(index.matches(&Update::parse("1,2,3")), true)
     }
 
     #[test]
     fn can_check_order_violates_rule() {
-        let index = PageOrderIndex::parse_rules("1|2");
+        let index = RulesIndex::parse_rules("1|2");
         assert_eq!(index.matches(&Update::parse("2,1")), false)
     }
 }
