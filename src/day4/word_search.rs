@@ -1,5 +1,5 @@
 use crate::day4::find_cursor::FindCursor;
-use crate::day4::lines::{generate_lines, Point};
+use crate::day4::lines::{generate_lines, generate_x_lines, Point};
 use std::collections::HashSet;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -20,11 +20,24 @@ impl WordSearch {
         matches
     }
 
+    pub fn count_x_mas(&self) -> i32 {
+        let (matches, _) = self.count_x_mas_find_points();
+        matches
+    }
+
     fn count_xmas_find_points(&self) -> (i32, HashSet<Point>) {
         let mut search = Search::new(self, "XMAS");
         for line in generate_lines(self.width, self.tiles.len()) {
             search.check_line(line.iter());
             search.check_line(line.iter().rev());
+        }
+        (search.matches, search.relevant_points)
+    }
+
+    fn count_x_mas_find_points(&self) -> (i32, HashSet<Point>) {
+        let mut search = Search::new(self, "MASMAS");
+        for line in generate_x_lines(self.width, self.tiles.len()) {
+            search.check_line(line.iter());
         }
         (search.matches, search.relevant_points)
     }
@@ -58,6 +71,7 @@ impl Search<'_> {
         L: Iterator<Item = &'a Point>,
     {
         self.find_cursor.reset();
+        self.current_points.clear();
         for point in line {
             if self
                 .find_cursor
@@ -143,6 +157,15 @@ mod tests {
                    ___S",
         );
         assert_eq!(word_search.count_xmas(), 1)
+    }
+
+    #[test]
+    fn can_find_x_mas_in_example() {
+        let example = input_to_string("day4/example.txt").unwrap();
+        let word_search = WordSearch::parse(example.as_str());
+        let (matches, points) = word_search.count_x_mas_find_points();
+        assert_eq!(matches, 9);
+        assert_snapshot!(print_relevant_points(&word_search, &points))
     }
 
     #[test]

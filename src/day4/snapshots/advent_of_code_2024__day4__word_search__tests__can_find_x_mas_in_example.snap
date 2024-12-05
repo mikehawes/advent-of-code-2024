@@ -1,0 +1,15 @@
+---
+source: src/day4/word_search.rs
+expression: "print_relevant_points(&word_search, &points)"
+snapshot_kind: text
+---
+.M.S......
+..A..MSMS.
+.M.S.MAA..
+..A.ASMSM.
+.M.S.M....
+..........
+S.S.S.S.S.
+.A.A.A.A..
+M.M.M.M.M.
+..........
