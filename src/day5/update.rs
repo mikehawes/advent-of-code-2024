@@ -17,6 +17,10 @@ impl Update {
         Update { pages }
     }
 
+    pub fn pages(&self) -> impl Iterator<Item = &i32> {
+        self.pages.iter()
+    }
+
     pub fn pairs(&self) -> impl Iterator<Item = (i32, i32)> + use<'_> {
         self.pages
             .iter()

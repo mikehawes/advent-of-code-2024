@@ -1,10 +1,10 @@
 use crate::day5::rule::PageOrderingRule;
 use crate::day5::update::Update;
 use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub struct PageOrderIndex {
-    higher_pages: HashMap<i32, Vec<i32>>,
+    lower_pages: HashMap<i32, HashSet<i32>>,
 }
 
 impl PageOrderIndex {
@@ -12,34 +12,29 @@ impl PageOrderIndex {
         Self::from_rules(PageOrderingRule::parse_to_vec(string))
     }
     pub fn from_rules(rules: Vec<PageOrderingRule>) -> PageOrderIndex {
-        let mut higher_pages = HashMap::new();
+        let mut lower_pages = HashMap::new();
         for rule in rules {
-            insert_index(&mut higher_pages, rule.lower_page, rule.higher_page);
+            insert_index(&mut lower_pages, rule.higher_page, rule.lower_page);
         }
-        PageOrderIndex { higher_pages }
+        PageOrderIndex { lower_pages }
     }
     pub fn matches(&self, update: &Update) -> bool {
-        update
-            .pairs()
-            .all(|(left, right)| self.pair_matches(left, right))
-    }
-    fn pair_matches(&self, left: i32, right: i32) -> bool {
-        if let Some(higher) = self.higher_pages.get(&right) {
-            higher
-                .iter()
-                .all(|h| *h != left && self.pair_matches(left, *h))
-        } else {
-            true
-        }
+        update.pages().enumerate().all(|(i, page)| {
+            if let Some(lower) = self.lower_pages.get(page) {
+                update.pages().skip(i).all(|after| !lower.contains(after))
+            } else {
+                true
+            }
+        })
     }
 }
 
-fn insert_index(map: &mut HashMap<i32, Vec<i32>>, key: i32, value: i32) {
+fn insert_index(map: &mut HashMap<i32, HashSet<i32>>, key: i32, value: i32) {
     match map.entry(key) {
         Entry::Occupied(o) => o.into_mut(),
-        Entry::Vacant(v) => v.insert(Vec::new()),
+        Entry::Vacant(v) => v.insert(HashSet::new()),
     }
-    .push(value);
+    .insert(value);
 }
 
 #[cfg(test)]
@@ -51,8 +46,12 @@ mod tests {
     fn can_build_index_from_rules() {
         let index = PageOrderIndex::parse_rules("1|2\n2|3\n3|4");
         assert_eq!(
-            index.higher_pages,
-            HashMap::from([(1, vec![2]), (2, vec![3]), (3, vec![4])])
+            index.lower_pages,
+            HashMap::from([
+                (2, HashSet::from([1])),
+                (3, HashSet::from([2])),
+                (4, HashSet::from([3]))
+            ])
         )
     }
 
