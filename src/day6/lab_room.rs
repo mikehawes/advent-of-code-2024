@@ -52,6 +52,9 @@ impl LabRoom {
         for y in 0..self.height {
             println!("Checking line {y}");
             for x in 0..self.width {
+                if self.guard.position == (x, y) {
+                    continue;
+                }
                 if !unobstructed.positions.contains(&(x, y)) {
                     continue;
                 }
