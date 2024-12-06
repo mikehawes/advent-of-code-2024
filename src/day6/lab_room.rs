@@ -25,6 +25,12 @@ enum Direction {
     Down,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+struct PathResult {
+    positions: usize,
+    in_loop: bool,
+}
+
 impl LabRoom {
     pub fn parse(string: &str) -> LabRoom {
         let width = string.lines().next().unwrap().len();
@@ -51,6 +57,9 @@ impl LabRoom {
         }
     }
     pub fn count_visited_positions(&self) -> usize {
+        self.check_path().positions
+    }
+    fn check_path(&self) -> PathResult {
         let mut positions = HashSet::new();
         let mut states = HashSet::new();
         let mut guard = self.guard.clone();
@@ -58,13 +67,13 @@ impl LabRoom {
         states.insert(guard.clone());
         loop {
             if !guard.move_forwards(self) {
-                return positions.len();
+                return PathResult::in_loop_after_visiting(positions.len());
             }
             if !self.is_in_room(guard.position) {
-                return positions.len();
+                return PathResult::left_after_visiting(positions.len());
             }
             if states.contains(&guard) {
-                return positions.len();
+                return PathResult::in_loop_after_visiting(positions.len());
             }
             positions.insert(guard.position);
             states.insert(guard.clone());
@@ -115,6 +124,21 @@ impl Direction {
     }
 }
 
+impl PathResult {
+    fn left_after_visiting(positions: usize) -> PathResult {
+        PathResult {
+            positions,
+            in_loop: false,
+        }
+    }
+    fn in_loop_after_visiting(positions: usize) -> PathResult {
+        PathResult {
+            positions,
+            in_loop: true,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,7 +177,10 @@ mod tests {
         let string = "\
                .^#\n\
                ...";
-        assert_eq!(LabRoom::parse(string).count_visited_positions(), 1)
+        assert_eq!(
+            LabRoom::parse(string).check_path(),
+            PathResult::left_after_visiting(1)
+        )
     }
 
     #[test]
@@ -161,7 +188,10 @@ mod tests {
         let string = "\
                ..#\n\
                .^.";
-        assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
+        assert_eq!(
+            LabRoom::parse(string).check_path(),
+            PathResult::left_after_visiting(2)
+        )
     }
 
     #[test]
@@ -170,7 +200,10 @@ mod tests {
                ..#\n\
                ...\n\
                ..^";
-        assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
+        assert_eq!(
+            LabRoom::parse(string).check_path(),
+            PathResult::left_after_visiting(2)
+        )
     }
 
     #[test]
@@ -179,7 +212,10 @@ mod tests {
                .#.\n\
                ..#\n\
                .^.";
-        assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
+        assert_eq!(
+            LabRoom::parse(string).check_path(),
+            PathResult::left_after_visiting(2)
+        )
     }
 
     #[test]
@@ -188,7 +224,10 @@ mod tests {
                .#.\n\
                #^#\n\
                .#.";
-        assert_eq!(LabRoom::parse(string).count_visited_positions(), 1)
+        assert_eq!(
+            LabRoom::parse(string).check_path(),
+            PathResult::in_loop_after_visiting(1)
+        )
     }
 
     #[test]
@@ -198,6 +237,9 @@ mod tests {
                .^.#\n\
                #...\n\
                ..#.";
-        assert_eq!(LabRoom::parse(string).count_visited_positions(), 4)
+        assert_eq!(
+            LabRoom::parse(string).check_path(),
+            PathResult::in_loop_after_visiting(4)
+        )
     }
 }
