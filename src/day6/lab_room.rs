@@ -1,4 +1,5 @@
-use crate::day6::lab_room::Direction::{Down, Left, Right, Up};
+use crate::day6::direction::Direction;
+use crate::day6::direction::Direction::{Down, Left, Right, Up};
 use std::collections::HashSet;
 
 type Point = (usize, usize);
@@ -15,14 +16,6 @@ pub struct LabRoom {
 struct Guard {
     position: Point,
     direction: Direction,
-}
-
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
-enum Direction {
-    Up,
-    Left,
-    Right,
-    Down,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -109,17 +102,6 @@ impl Guard {
             Left => (x.wrapping_sub(1), y),
             Right => (x + 1, y),
             Down => (x, y + 1),
-        }
-    }
-}
-
-impl Direction {
-    fn turn_right(&self) -> Direction {
-        match self {
-            Up => Right,
-            Left => Up,
-            Right => Down,
-            Down => Left,
         }
     }
 }
