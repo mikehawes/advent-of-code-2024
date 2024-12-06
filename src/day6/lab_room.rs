@@ -52,14 +52,10 @@ impl LabRoom {
     pub fn count_visited_positions(&self) -> usize {
         let mut positions = 1;
         let mut guard = self.guard.clone();
-        while self.move_guard(&mut guard) {
+        while guard.move_forwards(self) {
             positions += 1;
         }
         positions
-    }
-    fn move_guard(&self, guard: &mut Guard) -> bool {
-        guard.move_forwards();
-        self.is_in_room(guard)
     }
     fn is_in_room(&self, guard: &Guard) -> bool {
         let (x, y) = guard.position;
@@ -68,9 +64,10 @@ impl LabRoom {
 }
 
 impl Guard {
-    fn move_forwards(&mut self) {
+    fn move_forwards(&mut self, room: &LabRoom) -> bool {
         let (x, y) = self.position;
         self.position = (x, y.wrapping_sub(1));
+        room.is_in_room(self)
     }
 }
 
@@ -100,7 +97,7 @@ mod tests {
     }
 
     #[test]
-    fn can_count_immediately_left_room() {
+    fn can_find_moved_forwards_once() {
         let string = "\
                .^#\n\
                ...";
@@ -108,10 +105,20 @@ mod tests {
     }
 
     #[test]
-    fn can_count_left_room_no_turn() {
+    fn can_find_moved_forwards_twice() {
         let string = "\
                ..#\n\
                .^.";
+        assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
+    }
+
+    #[test]
+    #[ignore]
+    fn can_find_moved_forwards_then_turned_right() {
+        let string = "\
+               ..#\n\
+               ...\n\
+               ..^";
         assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
     }
 }
