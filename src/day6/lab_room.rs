@@ -1,8 +1,8 @@
-use crate::day6::direction::Direction;
-use crate::day6::direction::Direction::{Down, Left, Right, Up};
+use crate::day6::direction::Direction::Up;
+use crate::day6::guard::Guard;
 use std::collections::HashSet;
 
-type Point = (usize, usize);
+pub(super) type Point = (usize, usize);
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct LabRoom {
@@ -10,12 +10,6 @@ pub struct LabRoom {
     height: usize,
     obstructions: HashSet<Point>,
     guard: Guard,
-}
-
-#[derive(Debug, Eq, PartialEq, Clone, Hash)]
-struct Guard {
-    position: Point,
-    direction: Direction,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -76,33 +70,8 @@ impl LabRoom {
         let (x, y) = position;
         x < self.width && y < self.height
     }
-    fn is_obstructed(&self, position: Point) -> bool {
+    pub(super) fn is_obstructed(&self, position: Point) -> bool {
         self.obstructions.contains(&position)
-    }
-}
-
-impl Guard {
-    fn move_forwards(&mut self, room: &LabRoom) -> bool {
-        let mut direction = self.direction;
-        for _ in 0..4 {
-            let next = self.next_position(direction);
-            if !room.is_obstructed(next) {
-                self.position = next;
-                self.direction = direction;
-                return true;
-            }
-            direction = direction.turn_right();
-        }
-        false
-    }
-    fn next_position(&self, direction: Direction) -> Point {
-        let (x, y) = self.position;
-        match direction {
-            Up => (x, y.wrapping_sub(1)),
-            Left => (x.wrapping_sub(1), y),
-            Right => (x + 1, y),
-            Down => (x, y + 1),
-        }
     }
 }
 
@@ -124,7 +93,7 @@ impl PathResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::day6::lab_room::Direction::Up;
+    use crate::day6::direction::Direction::Up;
     use crate::input::input_to_string;
 
     #[test]
