@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 pub(super) type Point = (usize, usize);
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct LabRoom {
     width: usize,
     height: usize,
@@ -14,7 +14,7 @@ pub struct LabRoom {
 
 #[derive(Debug, Eq, PartialEq)]
 struct PathResult {
-    positions: usize,
+    positions: HashSet<Point>,
     in_loop: bool,
 }
 
@@ -44,7 +44,28 @@ impl LabRoom {
         }
     }
     pub fn count_visited_positions(&self) -> usize {
-        self.check_path().positions
+        self.check_path().num_positions()
+    }
+    pub fn count_positions_to_obstruct(&self) -> usize {
+        let mut positions = 0;
+        let unobstructed = self.check_path();
+        for y in 0..self.height {
+            println!("Checking line {y}");
+            for x in 0..self.width {
+                if !unobstructed.positions.contains(&(x, y)) {
+                    continue;
+                }
+                if self.obstructions.contains(&(x, y)) {
+                    continue;
+                }
+                let mut copy = self.clone();
+                copy.obstructions.insert((x, y));
+                if copy.check_path().in_loop {
+                    positions += 1;
+                }
+            }
+        }
+        positions
     }
     fn check_path(&self) -> PathResult {
         let mut positions = HashSet::new();
@@ -54,13 +75,13 @@ impl LabRoom {
         states.insert(guard.clone());
         loop {
             if !guard.move_forwards(self) {
-                return PathResult::in_loop_after_visiting(positions.len());
+                return PathResult::in_loop_after_visiting(positions);
             }
             if !self.is_in_room(guard.position) {
-                return PathResult::left_after_visiting(positions.len());
+                return PathResult::left_after_visiting(positions);
             }
             if states.contains(&guard) {
-                return PathResult::in_loop_after_visiting(positions.len());
+                return PathResult::in_loop_after_visiting(positions);
             }
             positions.insert(guard.position);
             states.insert(guard.clone());
@@ -76,17 +97,20 @@ impl LabRoom {
 }
 
 impl PathResult {
-    fn left_after_visiting(positions: usize) -> PathResult {
+    fn left_after_visiting(positions: HashSet<Point>) -> PathResult {
         PathResult {
             positions,
             in_loop: false,
         }
     }
-    fn in_loop_after_visiting(positions: usize) -> PathResult {
+    fn in_loop_after_visiting(positions: HashSet<Point>) -> PathResult {
         PathResult {
             positions,
             in_loop: true,
         }
+    }
+    fn num_positions(&self) -> usize {
+        self.positions.len()
     }
 }
 
@@ -97,10 +121,17 @@ mod tests {
     use crate::input::input_to_string;
 
     #[test]
-    fn can_count_positions_in_example() {
+    fn can_count_visited_positions_in_example() {
         let string = input_to_string("day6/example.txt").unwrap();
         let room = LabRoom::parse(string.as_str());
         assert_eq!(room.count_visited_positions(), 41)
+    }
+
+    #[test]
+    fn can_count_positions_to_obstruct_in_example() {
+        let string = input_to_string("day6/example.txt").unwrap();
+        let room = LabRoom::parse(string.as_str());
+        assert_eq!(room.count_positions_to_obstruct(), 6)
     }
 
     #[test]
@@ -128,10 +159,7 @@ mod tests {
         let string = "\
                .^#\n\
                ...";
-        assert_eq!(
-            LabRoom::parse(string).check_path(),
-            PathResult::left_after_visiting(1)
-        )
+        assert_eq!(check_path_positions_and_is_loop(string), (1, false))
     }
 
     #[test]
@@ -139,10 +167,7 @@ mod tests {
         let string = "\
                ..#\n\
                .^.";
-        assert_eq!(
-            LabRoom::parse(string).check_path(),
-            PathResult::left_after_visiting(2)
-        )
+        assert_eq!(check_path_positions_and_is_loop(string), (2, false))
     }
 
     #[test]
@@ -151,10 +176,7 @@ mod tests {
                ..#\n\
                ...\n\
                ..^";
-        assert_eq!(
-            LabRoom::parse(string).check_path(),
-            PathResult::left_after_visiting(2)
-        )
+        assert_eq!(check_path_positions_and_is_loop(string), (2, false))
     }
 
     #[test]
@@ -163,10 +185,7 @@ mod tests {
                .#.\n\
                ..#\n\
                .^.";
-        assert_eq!(
-            LabRoom::parse(string).check_path(),
-            PathResult::left_after_visiting(2)
-        )
+        assert_eq!(check_path_positions_and_is_loop(string), (2, false))
     }
 
     #[test]
@@ -175,10 +194,7 @@ mod tests {
                .#.\n\
                #^#\n\
                .#.";
-        assert_eq!(
-            LabRoom::parse(string).check_path(),
-            PathResult::in_loop_after_visiting(1)
-        )
+        assert_eq!(check_path_positions_and_is_loop(string), (1, true))
     }
 
     #[test]
@@ -188,9 +204,11 @@ mod tests {
                .^.#\n\
                #...\n\
                ..#.";
-        assert_eq!(
-            LabRoom::parse(string).check_path(),
-            PathResult::in_loop_after_visiting(4)
-        )
+        assert_eq!(check_path_positions_and_is_loop(string), (4, true))
+    }
+
+    fn check_path_positions_and_is_loop(string: &str) -> (usize, bool) {
+        let result = LabRoom::parse(string).check_path();
+        (result.positions.len(), result.in_loop)
     }
 }

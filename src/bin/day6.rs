@@ -5,4 +5,5 @@ fn main() {
     let input = input_to_string("day6/input.txt").unwrap();
     let room = LabRoom::parse(input.as_str());
     println!("Part 1: {}", room.count_visited_positions());
+    println!("Part 2: {}", room.count_positions_to_obstruct());
 }
