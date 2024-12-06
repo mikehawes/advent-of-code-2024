@@ -51,12 +51,18 @@ impl LabRoom {
         }
     }
     pub fn count_visited_positions(&self) -> usize {
-        let mut positions = 1;
+        let mut positions = HashSet::new();
         let mut guard = self.guard.clone();
-        while guard.move_forwards(self) {
-            positions += 1;
+        positions.insert(guard.position);
+        loop {
+            if !guard.move_forwards(self) {
+                return positions.len();
+            }
+            if !self.is_in_room(guard.position) {
+                return positions.len();
+            }
+            positions.insert(guard.position);
         }
-        positions
     }
     fn is_in_room(&self, position: Point) -> bool {
         let (x, y) = position;
@@ -69,13 +75,6 @@ impl LabRoom {
 
 impl Guard {
     fn move_forwards(&mut self, room: &LabRoom) -> bool {
-        if self.move_forward_if_unobstructed(room) {
-            room.is_in_room(self.position)
-        } else {
-            false
-        }
-    }
-    fn move_forward_if_unobstructed(&mut self, room: &LabRoom) -> bool {
         let mut direction = self.direction;
         for _ in 0..4 {
             let next = self.next_position(direction);
@@ -161,7 +160,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_find_moved_forwards_then_doubled_back() {
         let string = "\
                .#.\n\
