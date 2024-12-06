@@ -113,6 +113,14 @@ impl Direction {
 mod tests {
     use super::*;
     use crate::day6::lab_room::Direction::Up;
+    use crate::input::input_to_string;
+
+    #[test]
+    fn can_count_positions_in_example() {
+        let string = input_to_string("day6/example.txt").unwrap();
+        let room = LabRoom::parse(string.as_str());
+        assert_eq!(room.count_visited_positions(), 41)
+    }
 
     #[test]
     fn can_parse_room() {
