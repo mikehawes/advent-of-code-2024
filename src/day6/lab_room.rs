@@ -11,13 +11,13 @@ pub struct LabRoom {
     guard: Guard,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone, Hash)]
 struct Guard {
     position: Point,
     direction: Direction,
 }
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
 enum Direction {
     Up,
     Left,
@@ -52,8 +52,10 @@ impl LabRoom {
     }
     pub fn count_visited_positions(&self) -> usize {
         let mut positions = HashSet::new();
+        let mut states = HashSet::new();
         let mut guard = self.guard.clone();
         positions.insert(guard.position);
+        states.insert(guard.clone());
         loop {
             if !guard.move_forwards(self) {
                 return positions.len();
@@ -61,7 +63,11 @@ impl LabRoom {
             if !self.is_in_room(guard.position) {
                 return positions.len();
             }
+            if states.contains(&guard) {
+                return positions.len();
+            }
             positions.insert(guard.position);
+            states.insert(guard.clone());
         }
     }
     fn is_in_room(&self, position: Point) -> bool {
@@ -183,5 +189,15 @@ mod tests {
                #^#\n\
                .#.";
         assert_eq!(LabRoom::parse(string).count_visited_positions(), 1)
+    }
+
+    #[test]
+    fn can_find_loop() {
+        let string = "\
+               .#..\n\
+               .^.#\n\
+               #...\n\
+               ..#.";
+        assert_eq!(LabRoom::parse(string).count_visited_positions(), 4)
     }
 }
