@@ -10,24 +10,18 @@ pub struct LabRoom {
     guard: Guard,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 struct Guard {
     position: Point,
     direction: Direction,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 enum Direction {
     Up,
     Left,
     Right,
     Down,
-}
-
-impl LabRoom {
-    pub fn count_visited_positions(&self) -> usize {
-        0
-    }
 }
 
 impl LabRoom {
@@ -55,6 +49,29 @@ impl LabRoom {
             guard,
         }
     }
+    pub fn count_visited_positions(&self) -> usize {
+        let mut positions = 1;
+        let mut guard = self.guard.clone();
+        while self.move_guard(&mut guard) {
+            positions += 1;
+        }
+        positions
+    }
+    fn move_guard(&self, guard: &mut Guard) -> bool {
+        guard.move_forwards();
+        self.is_in_room(guard)
+    }
+    fn is_in_room(&self, guard: &Guard) -> bool {
+        let (x, y) = guard.position;
+        x < self.width && y < self.height
+    }
+}
+
+impl Guard {
+    fn move_forwards(&mut self) {
+        let (x, y) = self.position;
+        self.position = (x, y.wrapping_sub(1));
+    }
 }
 
 #[cfg(test)]
@@ -80,5 +97,21 @@ mod tests {
                 }
             }
         )
+    }
+
+    #[test]
+    fn can_count_immediately_left_room() {
+        let string = "\
+               .^#\n\
+               ...";
+        assert_eq!(LabRoom::parse(string).count_visited_positions(), 1)
+    }
+
+    #[test]
+    fn can_count_left_room_no_turn() {
+        let string = "\
+               ..#\n\
+               .^.";
+        assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
     }
 }
