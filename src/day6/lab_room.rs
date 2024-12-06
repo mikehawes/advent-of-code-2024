@@ -1,4 +1,5 @@
-use crate::day6::lab_room::Direction::Up;
+use crate::day6::lab_room::Direction::{Down, Left, Right, Up};
+use std::collections::HashSet;
 
 type Point = (usize, usize);
 
@@ -6,7 +7,7 @@ type Point = (usize, usize);
 pub struct LabRoom {
     width: usize,
     height: usize,
-    obstructions: Vec<Point>,
+    obstructions: HashSet<Point>,
     guard: Guard,
 }
 
@@ -16,7 +17,7 @@ struct Guard {
     direction: Direction,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 enum Direction {
     Up,
     Left,
@@ -28,7 +29,7 @@ impl LabRoom {
     pub fn parse(string: &str) -> LabRoom {
         let width = string.lines().next().unwrap().len();
         let height = string.lines().count();
-        let mut obstructions = vec![];
+        let mut obstructions = HashSet::new();
         let mut guard = Guard {
             position: (0, 0),
             direction: Up,
@@ -36,7 +37,7 @@ impl LabRoom {
         for (y, line) in string.lines().enumerate() {
             for (x, tile) in line.chars().enumerate() {
                 if tile == '#' {
-                    obstructions.push((x, y));
+                    obstructions.insert((x, y));
                 } else if tile == '^' {
                     guard.position = (x, y);
                 }
@@ -57,17 +58,55 @@ impl LabRoom {
         }
         positions
     }
-    fn is_in_room(&self, guard: &Guard) -> bool {
-        let (x, y) = guard.position;
+    fn is_in_room(&self, position: Point) -> bool {
+        let (x, y) = position;
         x < self.width && y < self.height
+    }
+    fn is_obstructed(&self, position: Point) -> bool {
+        self.obstructions.contains(&position)
     }
 }
 
 impl Guard {
     fn move_forwards(&mut self, room: &LabRoom) -> bool {
+        if self.move_forward_if_unobstructed(room) {
+            room.is_in_room(self.position)
+        } else {
+            false
+        }
+    }
+    fn move_forward_if_unobstructed(&mut self, room: &LabRoom) -> bool {
+        let mut direction = self.direction;
+        for _ in 0..4 {
+            let next = self.next_position(direction);
+            if !room.is_obstructed(next) {
+                self.position = next;
+                self.direction = direction;
+                return true;
+            }
+            direction = direction.turn_right();
+        }
+        false
+    }
+    fn next_position(&self, direction: Direction) -> Point {
         let (x, y) = self.position;
-        self.position = (x, y.wrapping_sub(1));
-        room.is_in_room(self)
+        match direction {
+            Up => (x, y.wrapping_sub(1)),
+            Left => (x.wrapping_sub(1), y),
+            Right => (x + 1, y),
+            Down => (x, y + 1),
+        }
+    }
+}
+
+impl Direction {
+    fn turn_right(&self) -> Direction {
+        match self {
+            Up => Right,
+            Left => Up,
+            Right => Down,
+            Down => Left,
+        }
     }
 }
 
@@ -87,7 +126,7 @@ mod tests {
             LabRoom {
                 width: 3,
                 height: 2,
-                obstructions: vec![(2, 0)],
+                obstructions: HashSet::from([(2, 0)]),
                 guard: Guard {
                     position: (2, 1),
                     direction: Up
@@ -113,12 +152,30 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_find_moved_forwards_then_turned_right() {
         let string = "\
                ..#\n\
                ...\n\
                ..^";
         assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
+    }
+
+    #[test]
+    #[ignore]
+    fn can_find_moved_forwards_then_doubled_back() {
+        let string = "\
+               .#.\n\
+               ..#\n\
+               .^.";
+        assert_eq!(LabRoom::parse(string).count_visited_positions(), 2)
+    }
+
+    #[test]
+    fn can_find_fully_obstructed() {
+        let string = "\
+               .#.\n\
+               #^#\n\
+               .#.";
+        assert_eq!(LabRoom::parse(string).count_visited_positions(), 1)
     }
 }
