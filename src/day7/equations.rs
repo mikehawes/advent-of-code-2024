@@ -11,6 +11,10 @@ impl Equations {
         }
     }
     pub fn sum_possible_answers(&self) -> usize {
-        self.equations.len()
+        self.equations
+            .iter()
+            .filter(|e| e.is_possible())
+            .map(|e| e.answer())
+            .sum()
     }
 }

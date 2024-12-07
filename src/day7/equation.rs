@@ -8,7 +8,7 @@ pub struct Equation {
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
-enum Operator {
+pub enum Operator {
     Add,
     Multiply,
 }
@@ -39,7 +39,13 @@ impl Equation {
             .unwrap();
         Equation { numbers, equals }
     }
-    pub fn possible_operator_combinations(&self) -> impl Iterator<Item = Vec<Operator>> + use<'_> {
+    pub fn is_possible(&self) -> bool {
+        self.possible_operator_combinations().any(|_| true)
+    }
+    pub fn answer(&self) -> usize {
+        self.equals
+    }
+    fn possible_operator_combinations(&self) -> impl Iterator<Item = Vec<Operator>> + use<'_> {
         self.all_operator_combinations()
             .filter(|c| self.is_combination_possible(c))
     }
