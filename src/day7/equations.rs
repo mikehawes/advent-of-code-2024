@@ -5,8 +5,10 @@ pub struct Equations {
 }
 
 impl Equations {
-    pub fn parse(_: &str) -> Equations {
-        Equations { equations: vec![] }
+    pub fn parse(string: &str) -> Equations {
+        Equations {
+            equations: Equation::parse_to_vec(string),
+        }
     }
     pub fn sum_possible_answers(&self) -> usize {
         self.equations.len()
