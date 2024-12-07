@@ -92,10 +92,7 @@ fn get_digits_with_base(num: usize, base: usize, pad: usize) -> Vec<usize> {
         digits.push(acc % base);
         acc /= base;
     }
-    let pad_chars = pad - digits.len();
-    for _ in 0..pad_chars {
-        digits.push(0);
-    }
+    digits.resize(pad, 0);
     digits
 }
 
