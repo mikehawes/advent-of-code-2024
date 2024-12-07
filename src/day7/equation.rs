@@ -1,3 +1,4 @@
+use crate::day7::equation::Operator::{Add, Multiply};
 use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -29,21 +30,17 @@ impl Equation {
             .unwrap();
         Equation { numbers, equals }
     }
-    fn all_operator_combinations(&self) -> Vec<Vec<Operator>> {
+    fn all_operator_combinations(&self) -> impl Iterator<Item = Vec<Operator>> {
         let num_operators = self.numbers.len() - 1;
         let num_combinations = 2_usize.pow(num_operators as u32);
-        let mut out: Vec<Vec<Operator>> = Vec::with_capacity(num_combinations);
-        for i in 0..num_combinations {
-            let mut vec: Vec<Operator> = Vec::with_capacity(num_operators);
-            for j in 0..num_operators {
-                vec.push(match nth_binary_digit(i, j) {
-                    0 => Operator::Add,
-                    _ => Operator::Multiply,
-                });
-            }
-            out.push(vec);
-        }
-        out
+        (0..num_combinations).map(move |i| {
+            (0..num_operators)
+                .map(move |j| match nth_binary_digit(i, j) {
+                    0 => Add,
+                    _ => Multiply,
+                })
+                .collect::<Vec<Operator>>()
+        })
     }
 }
 
@@ -102,7 +99,7 @@ mod tests {
     }
 
     fn print_all_combinations(equation: &Equation) -> Vec<String> {
-        print_combinations(equation.all_operator_combinations())
+        print_combinations(equation.all_operator_combinations().collect())
     }
 
     fn print_combinations(combinations: Vec<Vec<Operator>>) -> Vec<String> {
