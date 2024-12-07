@@ -51,6 +51,10 @@ impl Equation {
         self.possible_operator_combinations(vec![Add, Multiply])
             .any(|_| true)
     }
+    pub fn is_possible_add_multiply_concatenate(&self) -> bool {
+        self.possible_operator_combinations(vec![Add, Multiply, Concatenate])
+            .any(|_| true)
+    }
     pub fn answer(&self) -> usize {
         self.equals
     }
