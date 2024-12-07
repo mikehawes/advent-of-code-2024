@@ -13,7 +13,7 @@ impl Equations {
     pub fn sum_possible_answers(&self) -> usize {
         self.equations
             .iter()
-            .filter(|e| e.is_possible())
+            .filter(|e| e.is_possible_add_multiply())
             .map(|e| e.answer())
             .sum()
     }

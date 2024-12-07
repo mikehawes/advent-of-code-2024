@@ -1,4 +1,4 @@
-use crate::day7::equation::Operator::{Add, Multiply};
+use crate::day7::equation::Operator::{Add, Concatenate, Multiply};
 use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -11,6 +11,7 @@ pub struct Equation {
 pub enum Operator {
     Add,
     Multiply,
+    Concatenate,
 }
 
 impl Operator {
@@ -18,8 +19,15 @@ impl Operator {
         match self {
             Add => left + right,
             Multiply => left * right,
+            Concatenate => concat(left, right),
         }
     }
+}
+
+fn concat(left: usize, right: usize) -> usize {
+    let mut str = left.to_string();
+    str.push_str(right.to_string().as_str());
+    usize::from_str(str.as_str()).unwrap()
 }
 
 impl Equation {
@@ -39,48 +47,61 @@ impl Equation {
             .unwrap();
         Equation { numbers, equals }
     }
-    pub fn is_possible(&self) -> bool {
-        self.possible_operator_combinations().any(|_| true)
+    pub fn is_possible_add_multiply(&self) -> bool {
+        self.possible_operator_combinations(vec![Add, Multiply])
+            .any(|_| true)
     }
     pub fn answer(&self) -> usize {
         self.equals
     }
-    fn possible_operator_combinations(&self) -> impl Iterator<Item = Vec<Operator>> + use<'_> {
-        self.all_operator_combinations()
+    fn possible_operator_combinations(
+        &self,
+        operators: Vec<Operator>,
+    ) -> impl Iterator<Item = Vec<Operator>> + use<'_> {
+        self.all_operator_combinations(operators)
             .filter(|c| self.is_combination_possible(c))
     }
-    fn all_operator_combinations(&self) -> impl Iterator<Item = Vec<Operator>> {
+    fn all_operator_combinations(
+        &self,
+        operators: Vec<Operator>,
+    ) -> impl Iterator<Item = Vec<Operator>> {
         let num_operators = self.numbers.len() - 1;
-        let num_combinations = 2_usize.pow(num_operators as u32);
+        let num_combinations = operators.len().pow(num_operators as u32);
         (0..num_combinations).map(move |i| {
-            (0..num_operators)
-                .map(move |j| match nth_binary_digit(i, j) {
-                    0 => Add,
-                    _ => Multiply,
-                })
+            let digits = get_digits_with_base(i, operators.len(), num_operators);
+            digits
+                .iter()
+                .map(|digit| operators[*digit])
                 .collect::<Vec<Operator>>()
         })
     }
-    fn is_combination_possible(&self, operators: &Vec<Operator>) -> bool {
+    fn is_combination_possible(&self, operators: &[Operator]) -> bool {
         let mut acc = self.numbers[0];
-        for i in 0..(self.numbers.len() - 1) {
+        for (i, operator) in operators.iter().enumerate() {
             let right = self.numbers[i + 1];
-            let operator = operators[i];
             acc = operator.apply(acc, right);
         }
         acc == self.equals
     }
 }
 
-fn nth_binary_digit(num: usize, digit: usize) -> usize {
-    let one_at_digit = 2_usize.pow(digit as u32);
-    let value_at_digit = num & one_at_digit;
-    value_at_digit >> digit
+fn get_digits_with_base(num: usize, base: usize, pad: usize) -> Vec<usize> {
+    let mut digits = vec![];
+    let mut acc = num;
+    while acc > 0 {
+        digits.push(acc % base);
+        acc /= base;
+    }
+    let pad_chars = pad - digits.len();
+    for _ in 0..pad_chars {
+        digits.push(0);
+    }
+    digits
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::day7::equation::Operator::{Add, Multiply};
+    use crate::day7::equation::Operator::{Add, Concatenate, Multiply};
     use crate::day7::equation::{Equation, Operator};
 
     #[test]
@@ -132,12 +153,37 @@ mod tests {
         assert_eq!(print_possible_combinations(&equation), vec!["+++", "*++"]);
     }
 
+    #[test]
+    fn can_find_all_combinations_for_two_operators_with_concatenate() {
+        let equation = Equation::parse("9: 3 3 3");
+        assert_eq!(
+            print_all_combinations_with_concatenate(&equation),
+            vec!["++", "*+", "|+", "+*", "**", "|*", "+|", "*|", "||"]
+        );
+    }
+
     fn print_possible_combinations(equation: &Equation) -> Vec<String> {
-        print_combinations(equation.possible_operator_combinations().collect())
+        print_combinations(
+            equation
+                .possible_operator_combinations(vec![Add, Multiply])
+                .collect(),
+        )
     }
 
     fn print_all_combinations(equation: &Equation) -> Vec<String> {
-        print_combinations(equation.all_operator_combinations().collect())
+        print_combinations(
+            equation
+                .all_operator_combinations(vec![Add, Multiply])
+                .collect(),
+        )
+    }
+
+    fn print_all_combinations_with_concatenate(equation: &Equation) -> Vec<String> {
+        print_combinations(
+            equation
+                .all_operator_combinations(vec![Add, Multiply, Concatenate])
+                .collect(),
+        )
     }
 
     fn print_combinations(combinations: Vec<Vec<Operator>>) -> Vec<String> {
@@ -150,6 +196,7 @@ mod tests {
             .map(|op| match op {
                 Add => '+',
                 Multiply => '*',
+                Concatenate => '|',
             })
             .collect()
     }
