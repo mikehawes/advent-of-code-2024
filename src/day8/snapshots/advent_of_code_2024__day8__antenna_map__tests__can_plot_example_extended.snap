@@ -1,0 +1,18 @@
+---
+source: src/day8/antenna_map.rs
+assertion_line: 131
+expression: plot_map_extended(input.as_str())
+snapshot_kind: text
+---
+##....#....#
+.#.#....0...
+..#.#0....#.
+..##...0....
+....0....#..
+.#...#A....#
+...#..#.....
+#....#.#....
+..#.....A...
+....#....A..
+.#........#.
+...#......##
