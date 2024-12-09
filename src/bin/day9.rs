@@ -6,6 +6,6 @@ fn main() {
     let map = DiskMap::parse(input.as_str());
     println!(
         "Part 1: {}",
-        map.file_system_checksum_after_compacting_last_first()
+        map.build_file_system().compact_last_first().checksum()
     );
 }
