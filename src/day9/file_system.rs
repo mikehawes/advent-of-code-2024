@@ -11,7 +11,11 @@ impl FileSystem {
         self.clone()
     }
     pub fn checksum(&self) -> usize {
-        1
+        self.file_ids
+            .iter()
+            .enumerate()
+            .map(|(index, id)| if *id < 0 { 0 } else { index * *id as usize })
+            .sum()
     }
 }
 
@@ -24,6 +28,12 @@ mod tests {
     fn can_build_file_system() {
         let map = DiskMap::parse("12345");
         assert_eq!(print(&map.build_file_system()), "0..111....22222");
+    }
+
+    #[test]
+    fn can_compute_checksum() {
+        let fs = DiskMap::parse("12345").build_file_system();
+        assert_eq!(fs.checksum(), 3 + 4 + 5 + 2 * (10 + 11 + 12 + 13 + 14))
     }
 
     fn print(file_system: &FileSystem) -> String {
