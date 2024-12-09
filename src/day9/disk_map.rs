@@ -9,7 +9,7 @@ impl DiskMap {
     pub fn parse(string: &str) -> DiskMap {
         let sizes = string
             .chars()
-            .map(|char| usize::from_str(char.to_string().as_str()).unwrap())
+            .flat_map(|char| usize::from_str(char.to_string().as_str()))
             .collect();
         DiskMap { sizes }
     }
