@@ -6,19 +6,14 @@ pub struct FileSystem {
 }
 
 impl FileSystem {
-    pub fn with_capacity(capacity: usize) -> FileSystem {
+    pub(super) fn with_capacity(capacity: usize) -> FileSystem {
         FileSystem {
-            file_ids: Vec::with_capacity(capacity),
+            file_ids: (0..capacity).map(|_| -1).collect(),
         }
     }
-    pub fn add_file(&mut self, id: usize, length: usize) {
-        for _ in 0..length {
-            self.file_ids.push(id as isize);
-        }
-    }
-    pub fn add_space(&mut self, length: usize) {
-        for _ in 0..length {
-            self.file_ids.push(-1);
+    pub(super) fn add_file(&mut self, id: usize, index: usize, length: usize) {
+        for i in index..(index + length) {
+            self.file_ids[i] = id as isize;
         }
     }
     pub fn compact_splitting_files(&self) -> FileSystem {
@@ -55,7 +50,7 @@ impl FileSystem {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use crate::day9::disk_map::DiskMap;
     use crate::day9::file_system::FileSystem;
 
@@ -101,7 +96,7 @@ mod tests {
         assert_eq!(fs.compact_splitting_files().checksum(), 1928);
     }
 
-    fn print(file_system: &FileSystem) -> String {
+    pub fn print(file_system: &FileSystem) -> String {
         file_system
             .file_ids
             .iter()
