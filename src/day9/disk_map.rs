@@ -7,11 +7,13 @@ pub struct DiskMap {
     spaces: Vec<Space>,
 }
 
+#[derive(Clone)]
 struct Space {
     index: usize,
     length: usize,
 }
 
+#[derive(Clone)]
 struct File {
     id: usize,
     index: usize,
@@ -57,6 +59,27 @@ impl DiskMap {
         }
         fs
     }
+    pub fn compact_fitting_into_spaces(&self) -> DiskMap {
+        let mut spaces = self.spaces.clone();
+        let mut files = self.files.clone();
+        for file in files.iter_mut().rev() {
+            for space in spaces.iter_mut() {
+                if space.index < file.index && file.length <= space.length {
+                    file.index = space.index;
+                    space.index += file.length;
+                    space.length = space.length.saturating_sub(file.length);
+                    break;
+                }
+            }
+        }
+        spaces.retain(|space| space.length > 0);
+        let length = files.iter().map(|f| f.index + f.length).max().unwrap_or(0);
+        DiskMap {
+            length,
+            files,
+            spaces,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -67,7 +90,15 @@ mod tests {
     #[test]
     fn can_compact_fitting_into_spaces() {
         let map = DiskMap::parse("14213");
-        let fs = map.build_file_system();
-        assert_eq!(fs::print(&fs), "0....11.222")
+        let fs = map.compact_fitting_into_spaces().build_file_system();
+        assert_eq!(fs::print(&fs), "0222.11")
+    }
+
+    #[test]
+    fn can_compact_fitting_into_spaces_for_example() {
+        let string = "2333133121414131402";
+        let map = DiskMap::parse(string);
+        let fs = map.compact_fitting_into_spaces().build_file_system();
+        assert_eq!(fs::print(&fs), "00992111777.44.333....5555.6666.....8888")
     }
 }
