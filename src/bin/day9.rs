@@ -6,6 +6,6 @@ fn main() {
     let map = DiskMap::parse(input.as_str());
     println!(
         "Part 1: {}",
-        map.build_file_system().compact_last_first().checksum()
+        map.build_file_system().compact_splitting_files().checksum()
     );
 }

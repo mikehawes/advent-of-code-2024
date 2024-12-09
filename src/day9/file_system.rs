@@ -9,7 +9,7 @@ impl FileSystem {
     pub fn from(file_ids: Vec<isize>) -> FileSystem {
         FileSystem { file_ids }
     }
-    pub fn compact_last_first(&self) -> FileSystem {
+    pub fn compact_splitting_files(&self) -> FileSystem {
         let mut file_ids = self.file_ids.clone();
         let mut ids_from_end = self
             .file_ids
@@ -60,9 +60,9 @@ mod tests {
     }
 
     #[test]
-    fn can_compact_last_first() {
+    fn can_compact_splitting_files() {
         let fs = DiskMap::parse("12345").build_file_system();
-        assert_eq!(print(&fs.compact_last_first()), "022111222")
+        assert_eq!(print(&fs.compact_splitting_files()), "022111222")
     }
 
     #[test]
@@ -73,20 +73,20 @@ mod tests {
     }
 
     #[test]
-    fn can_compact_example_file_system() {
+    fn can_compact_splitting_files_for_example() {
         let string = "2333133121414131402";
         let fs = DiskMap::parse(string).build_file_system();
         assert_eq!(
-            print(&fs.compact_last_first()),
+            print(&fs.compact_splitting_files()),
             "0099811188827773336446555566"
         );
     }
 
     #[test]
-    fn can_compute_example_checksum() {
+    fn can_compute_example_checksum_after_compact_splitting_files() {
         let string = "2333133121414131402";
         let fs = DiskMap::parse(string).build_file_system();
-        assert_eq!(fs.compact_last_first().checksum(), 1928);
+        assert_eq!(fs.compact_splitting_files().checksum(), 1928);
     }
 
     fn print(file_system: &FileSystem) -> String {
