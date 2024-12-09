@@ -6,8 +6,20 @@ pub struct FileSystem {
 }
 
 impl FileSystem {
-    pub fn from(file_ids: Vec<isize>) -> FileSystem {
-        FileSystem { file_ids }
+    pub fn with_capacity(capacity: usize) -> FileSystem {
+        FileSystem {
+            file_ids: Vec::with_capacity(capacity),
+        }
+    }
+    pub fn add_file(&mut self, id: usize, length: usize) {
+        for _ in 0..length {
+            self.file_ids.push(id as isize);
+        }
+    }
+    pub fn add_space(&mut self, length: usize) {
+        for _ in 0..length {
+            self.file_ids.push(-1);
+        }
     }
     pub fn compact_splitting_files(&self) -> FileSystem {
         let mut file_ids = self.file_ids.clone();
