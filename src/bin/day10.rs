@@ -5,4 +5,5 @@ fn main() {
     let input = input_to_string("day10/input.txt").unwrap();
     let map = HikingMap::parse(input.as_str());
     println!("Part 1: {}", map.sum_trailhead_scores());
+    println!("Part 2: {}", map.sum_trailhead_ratings());
 }

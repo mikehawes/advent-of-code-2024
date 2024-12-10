@@ -36,25 +36,46 @@ impl HikingMap {
     pub fn sum_trailhead_scores(&self) -> usize {
         self.trailhead_scores().map(|(_, score)| score).sum()
     }
+    pub fn sum_trailhead_ratings(&self) -> usize {
+        self.trailhead_ratings().map(|(_, score)| score).sum()
+    }
     fn trailhead_scores(&self) -> impl Iterator<Item = (Point, usize)> + use<'_> {
         self.trailheads
             .iter()
-            .map(|trailhead| (*trailhead, self.score_from(*trailhead)))
+            .map(|trailhead| (*trailhead, self.reachable_9s(*trailhead).len()))
     }
-    fn score_from(&self, point: Point) -> usize {
-        self.reachable_9s(point).len()
+    fn trailhead_ratings(&self) -> impl Iterator<Item = (Point, usize)> + use<'_> {
+        self.trailheads
+            .iter()
+            .map(|trailhead| (*trailhead, self.reachable_paths(*trailhead)))
     }
     fn reachable_9s(&self, point: Point) -> HashSet<Point> {
+        let mut set = HashSet::new();
+        self.for_each_reached_9(point, &mut |point| {
+            set.insert(point);
+        });
+        set
+    }
+    fn reachable_paths(&self, point: Point) -> usize {
+        let mut paths = 0;
+        self.for_each_reached_9(point, &mut |_| {
+            paths += 1;
+        });
+        paths
+    }
+    fn for_each_reached_9<F>(&self, point: Point, operation: &mut F)
+    where
+        F: FnMut(Point),
+    {
         let height = self.height_at(point);
         if height == 9 {
-            HashSet::from([point])
+            operation(point)
         } else {
             let next_height = height + 1;
             self.adjacent_points(point)
                 .iter()
                 .filter(|adj| self.height_at(**adj) == next_height)
-                .flat_map(|adj| self.reachable_9s(*adj))
-                .collect()
+                .for_each(|adj| self.for_each_reached_9(*adj, operation))
         }
     }
     fn height_at(&self, point: Point) -> usize {
@@ -127,5 +148,12 @@ mod tests {
         let string = input_to_string("day10/example.txt").unwrap();
         let map = HikingMap::parse(string.as_str());
         assert_eq!(map.sum_trailhead_scores(), 36)
+    }
+
+    #[test]
+    fn can_sum_example_trailhead_ratings() {
+        let string = input_to_string("day10/example.txt").unwrap();
+        let map = HikingMap::parse(string.as_str());
+        assert_eq!(map.sum_trailhead_ratings(), 81)
     }
 }
