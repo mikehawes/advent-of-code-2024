@@ -1,5 +1,5 @@
-use crate::day5::page_ordering_rule::PageOrderingRule;
-use crate::day5::update::Update;
+use crate::day05::page_ordering_rule::PageOrderingRule;
+use crate::day05::update::Update;
 use std::cmp::Ordering;
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::collections::hash_map::Entry;
@@ -55,7 +55,7 @@ fn insert_index(map: &mut HashMap<i32, HashSet<i32>>, key: i32, value: i32) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::day5::update::Update;
+    use crate::day05::update::Update;
 
     #[test]
     fn can_build_index_from_rules() {

@@ -118,33 +118,33 @@ fn to_point(vector: Vector) -> Point {
 
 #[cfg(test)]
 mod tests {
-    use crate::day8::antenna_map::{AntennaMap, Point};
+    use crate::day08::antenna_map::{AntennaMap, Point};
     use crate::input::input_to_string;
     use insta::assert_snapshot;
     use std::collections::HashMap;
 
     #[test]
     fn can_plot_example() {
-        let input = input_to_string("day8/example.txt").unwrap();
+        let input = input_to_string("day08/example.txt").unwrap();
         assert_snapshot!(plot_map(input.as_str()));
     }
 
     #[test]
     fn can_plot_example_extended() {
-        let input = input_to_string("day8/example.txt").unwrap();
+        let input = input_to_string("day08/example.txt").unwrap();
         assert_snapshot!(plot_map_extended(input.as_str()));
     }
 
     #[test]
     fn can_count_antinodes_for_example() {
-        let input = input_to_string("day8/example.txt").unwrap();
+        let input = input_to_string("day08/example.txt").unwrap();
         let map = AntennaMap::parse(input.as_str());
         assert_eq!(map.count_unique_antinode_locations(), 14)
     }
 
     #[test]
     fn can_count_extendedantinodes_for_example() {
-        let input = input_to_string("day8/example.txt").unwrap();
+        let input = input_to_string("day08/example.txt").unwrap();
         let map = AntennaMap::parse(input.as_str());
         assert_eq!(map.count_unique_extended_antinode_locations(), 34)
     }

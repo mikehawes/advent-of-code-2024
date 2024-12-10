@@ -1,4 +1,4 @@
-use crate::day9::file_system::FileSystem;
+use crate::day09::file_system::FileSystem;
 use std::str::FromStr;
 
 pub struct DiskMap {
@@ -85,7 +85,7 @@ impl DiskMap {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::day9::file_system::tests as fs;
+    use crate::day09::file_system::tests as fs;
 
     #[test]
     fn can_compact_fitting_into_spaces() {

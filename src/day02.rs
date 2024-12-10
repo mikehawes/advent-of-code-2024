@@ -112,14 +112,14 @@ mod tests {
 
     #[test]
     fn can_count_safe_in_example() -> io::Result<()> {
-        assert_eq!(Reports::read_input("day2/example.txt")?.count_safe(), 2);
+        assert_eq!(Reports::read_input("day02/example.txt")?.count_safe(), 2);
         Ok(())
     }
 
     #[test]
     fn can_count_safe_with_tolerance_in_example() -> io::Result<()> {
         assert_eq!(
-            Reports::read_input("day2/example.txt")?.count_safe_with_tolerance(),
+            Reports::read_input("day02/example.txt")?.count_safe_with_tolerance(),
             4
         );
         Ok(())

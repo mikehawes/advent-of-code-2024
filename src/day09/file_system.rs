@@ -51,8 +51,8 @@ impl FileSystem {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use crate::day9::disk_map::DiskMap;
-    use crate::day9::file_system::FileSystem;
+    use crate::day09::disk_map::DiskMap;
+    use crate::day09::file_system::FileSystem;
 
     #[test]
     fn can_build_file_system() {

@@ -1,4 +1,4 @@
-use crate::day7::equation::Operator::{Add, Concatenate, Multiply};
+use crate::day07::equation::Operator::{Add, Concatenate, Multiply};
 use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -102,8 +102,8 @@ fn get_digits_with_base(num: usize, base: usize, pad: usize) -> Vec<usize> {
 
 #[cfg(test)]
 mod tests {
-    use crate::day7::equation::Operator::{Add, Concatenate, Multiply};
-    use crate::day7::equation::{Equation, Operator};
+    use crate::day07::equation::Operator::{Add, Concatenate, Multiply};
+    use crate::day07::equation::{Equation, Operator};
 
     #[test]
     fn can_parse_equations() {

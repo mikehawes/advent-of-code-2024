@@ -1,6 +1,6 @@
-use crate::day6::direction::Direction;
-use crate::day6::direction::Direction::{Down, Left, Right, Up};
-use crate::day6::lab_room::{LabRoom, Point};
+use crate::day06::direction::Direction;
+use crate::day06::direction::Direction::{Down, Left, Right, Up};
+use crate::day06::lab_room::{LabRoom, Point};
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub struct Guard {

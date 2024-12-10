@@ -81,14 +81,14 @@ mod tests {
 
     #[test]
     fn can_find_example_distance() -> io::Result<()> {
-        let result = Vectors::read_input("day1/example.txt")?.total_distance();
+        let result = Vectors::read_input("day01/example.txt")?.total_distance();
         assert_eq!(result, 11);
         Ok(())
     }
 
     #[test]
     fn can_find_example_similarity() -> io::Result<()> {
-        let result = Vectors::read_input("day1/example.txt")?.similarity();
+        let result = Vectors::read_input("day01/example.txt")?.similarity();
         assert_eq!(result, 31);
         Ok(())
     }

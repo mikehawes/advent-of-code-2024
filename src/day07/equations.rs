@@ -1,4 +1,4 @@
-use crate::day7::equation::Equation;
+use crate::day07::equation::Equation;
 
 pub struct Equations {
     equations: Vec<Equation>,
@@ -28,19 +28,19 @@ impl Equations {
 
 #[cfg(test)]
 mod tests {
-    use crate::day7::equations::Equations;
+    use crate::day07::equations::Equations;
     use crate::input::input_to_string;
 
     #[test]
     fn can_sum_example_possible_answers() {
-        let input = input_to_string("day7/example.txt").unwrap();
+        let input = input_to_string("day07/example.txt").unwrap();
         let sum = Equations::parse(input.as_str()).sum_possible_answers();
         assert_eq!(sum, 3749)
     }
 
     #[test]
     fn can_sum_example_possible_answers_with_concat() {
-        let input = input_to_string("day7/example.txt").unwrap();
+        let input = input_to_string("day07/example.txt").unwrap();
         let sum = Equations::parse(input.as_str()).sum_possible_answers_with_concat();
         assert_eq!(sum, 11387)
     }

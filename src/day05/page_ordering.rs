@@ -1,5 +1,5 @@
-use crate::day5::rules_index::RulesIndex;
-use crate::day5::update::Update;
+use crate::day05::rules_index::RulesIndex;
+use crate::day05::update::Update;
 
 pub struct PageOrdering {
     rules_index: RulesIndex,
@@ -43,14 +43,14 @@ mod tests {
 
     #[test]
     fn can_sum_correct_middle_pages_for_example() {
-        let example = input_to_string("day5/example.txt").unwrap();
+        let example = input_to_string("day05/example.txt").unwrap();
         let ordering = PageOrdering::parse(example.as_str());
         assert_eq!(ordering.sum_correct_middle_pages(), 143);
     }
 
     #[test]
     fn can_sum_corrected_middle_pages_for_example() {
-        let example = input_to_string("day5/example.txt").unwrap();
+        let example = input_to_string("day05/example.txt").unwrap();
         let ordering = PageOrdering::parse(example.as_str());
         assert_eq!(ordering.sum_corrected_middle_pages(), 123);
     }

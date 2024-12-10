@@ -1,5 +1,5 @@
-use crate::day6::direction::Direction::Up;
-use crate::day6::guard::Guard;
+use crate::day06::direction::Direction::Up;
+use crate::day06::guard::Guard;
 use std::collections::HashSet;
 
 pub(super) type Point = (usize, usize);
@@ -120,19 +120,19 @@ impl PathResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::day6::direction::Direction::Up;
+    use crate::day06::direction::Direction::Up;
     use crate::input::input_to_string;
 
     #[test]
     fn can_count_visited_positions_in_example() {
-        let string = input_to_string("day6/example.txt").unwrap();
+        let string = input_to_string("day06/example.txt").unwrap();
         let room = LabRoom::parse(string.as_str());
         assert_eq!(room.count_visited_positions(), 41)
     }
 
     #[test]
     fn can_count_positions_to_obstruct_in_example() {
-        let string = input_to_string("day6/example.txt").unwrap();
+        let string = input_to_string("day06/example.txt").unwrap();
         let room = LabRoom::parse(string.as_str());
         assert_eq!(room.count_positions_to_obstruct(), 6)
     }

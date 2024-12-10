@@ -1,4 +1,4 @@
-use crate::day5::rules_index::RulesIndex;
+use crate::day05::rules_index::RulesIndex;
 use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq)]
