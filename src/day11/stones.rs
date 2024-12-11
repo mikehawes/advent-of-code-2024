@@ -1,3 +1,4 @@
+use crate::day11::digits::{count_digits, split_even_digits};
 use std::str::FromStr;
 
 #[derive(Clone)]
@@ -43,34 +44,9 @@ fn blink_stone(stone: usize) -> Vec<usize> {
     }
 }
 
-fn count_digits(stone: usize) -> usize {
-    let log = (stone as f32).log10();
-    log.floor() as usize + 1
-}
-
-fn split_even_digits(stone: usize, digits: usize) -> Vec<usize> {
-    let split = digits / 2;
-    let mut higher = 0;
-    let mut lower = 0;
-    let mut acc = stone;
-    for _ in 0..split {
-        let digit = acc % 10;
-        lower *= 10;
-        lower += digit;
-        acc /= 10;
-    }
-    for _ in split..digits {
-        let digit = acc % 10;
-        higher *= 10;
-        higher += digit;
-        acc /= 10;
-    }
-    vec![higher, lower]
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::day11::stones::{count_digits, Stones};
+    use crate::day11::stones::Stones;
 
     #[test]
     fn can_parse_stones() {
@@ -99,26 +75,6 @@ mod tests {
     fn can_count_stones_after_25_blinks() {
         let stones = Stones::parse("0 1 10 99 999");
         assert_eq!(stones.blink_times(25).count_stones(), 55312)
-    }
-
-    #[test]
-    fn can_count_digits() {
-        assert_eq!(count_digits(1234), 4)
-    }
-
-    #[test]
-    fn can_count_digits_ending_in_zero() {
-        assert_eq!(count_digits(1234567890), 10)
-    }
-
-    #[test]
-    fn can_count_one_digit() {
-        assert_eq!(count_digits(1), 1)
-    }
-
-    #[test]
-    fn can_count_digits_of_10() {
-        assert_eq!(count_digits(10), 2)
     }
 
     fn print(stones: &Stones) -> String {
