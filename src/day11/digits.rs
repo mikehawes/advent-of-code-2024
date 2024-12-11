@@ -8,16 +8,18 @@ pub fn split_even_digits(stone: usize, digits: usize) -> Vec<usize> {
     let mut higher = 0;
     let mut lower = 0;
     let mut acc = stone;
+    let mut mult = 1;
     for _ in 0..split {
         let digit = acc % 10;
-        lower *= 10;
-        lower += digit;
+        lower += digit * mult;
+        mult *= 10;
         acc /= 10;
     }
+    mult = 1;
     for _ in split..digits {
         let digit = acc % 10;
-        higher *= 10;
-        higher += digit;
+        higher += digit * mult;
+        mult *= 10;
         acc /= 10;
     }
     vec![higher, lower]
@@ -45,5 +47,15 @@ mod tests {
     #[test]
     fn can_count_digits_of_10() {
         assert_eq!(count_digits(10), 2)
+    }
+
+    #[test]
+    fn can_split_digits_of_123456() {
+        assert_eq!(split_even_digits(123456, 6), vec![123, 456])
+    }
+
+    #[test]
+    fn can_split_digits_of_253000() {
+        assert_eq!(split_even_digits(253000, 6), vec![253, 0])
     }
 }
