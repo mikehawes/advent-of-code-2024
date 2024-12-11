@@ -1,4 +1,5 @@
 use crate::day11::blink::{blink_stone_times, count_stones_with_blinks};
+use crate::day11::blink_cache::BlinkCache;
 use std::str::FromStr;
 
 #[derive(Clone)]
@@ -15,7 +16,12 @@ impl Stones {
         Stones { stones }
     }
     pub fn count_stones_after_blinks(&self, times: usize) -> usize {
-        count_stones_with_blinks(times, self.stones.clone())
+        let cache = BlinkCache::precompute(5, 100_000);
+        println!("Precomputed cache");
+        self.count_stones_after_blinks_with_cache(times, &cache)
+    }
+    pub fn count_stones_after_blinks_with_cache(&self, times: usize, cache: &BlinkCache) -> usize {
+        count_stones_with_blinks(times, self.stones.clone(), cache)
     }
     fn blink_times(&self, times: usize) -> Stones {
         let stones = self
@@ -29,6 +35,7 @@ impl Stones {
 
 #[cfg(test)]
 mod tests {
+    use crate::day11::blink_cache::BlinkCache;
     use crate::day11::stones::Stones;
 
     #[test]
@@ -68,14 +75,14 @@ mod tests {
     #[test]
     fn can_count_stones_after_25_blinks_second_example() {
         let stones = Stones::parse("125 17");
-        assert_eq!(stones.count_stones_after_blinks(25), 55312)
+        assert_eq!(count_stones_after_blinks(&stones, 25), 55312)
     }
 
     #[test]
     fn can_find_number_of_stones_sequence() {
         let stones = Stones::parse("125 17");
         let sequence: Vec<usize> = (0..=25)
-            .map(|blinks| stones.count_stones_after_blinks(blinks))
+            .map(|blinks| count_stones_after_blinks(&stones, blinks))
             .collect();
         assert_eq!(
             sequence,
@@ -90,7 +97,7 @@ mod tests {
     fn can_find_number_of_stones_sequence_for_one_stone() {
         let stones = Stones::parse("125");
         let sequence: Vec<usize> = (0..=30)
-            .map(|blinks| stones.count_stones_after_blinks(blinks))
+            .map(|blinks| count_stones_after_blinks(&stones, blinks))
             .collect();
         assert_eq!(
             sequence,
@@ -105,7 +112,7 @@ mod tests {
     fn can_find_number_of_stones_sequence_for_zero() {
         let stones = Stones::parse("0");
         let sequence: Vec<usize> = (0..=30)
-            .map(|blinks| stones.count_stones_after_blinks(blinks))
+            .map(|blinks| count_stones_after_blinks(&stones, blinks))
             .collect();
         assert_eq!(
             sequence,
@@ -138,6 +145,11 @@ mod tests {
                  "80 96 2024 80 96 32772608 4048 1 4048 8096 80 96 2024 80 96 32772608 32772608 2024 36869184 24579456",
                  "8 0 9 6 20 24 8 0 9 6 3277 2608 40 48 2024 40 48 80 96 8 0 9 6 20 24 8 0 9 6 3277 2608 3277 2608 20 24 3686 9184 2457 9456"]
         )
+    }
+
+    fn count_stones_after_blinks(stones: &Stones, blinks: usize) -> usize {
+        let cache = BlinkCache::precompute(5, 1_000);
+        stones.count_stones_after_blinks_with_cache(blinks, &cache)
     }
 
     fn print(stones: &Stones) -> String {

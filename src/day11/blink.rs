@@ -1,4 +1,6 @@
+use crate::day11::blink_cache::BlinkCache;
 use crate::day11::digits::{count_digits, split_even_digits};
+use std::collections::HashSet;
 
 pub fn blink_stone_times(stone: usize, times: usize) -> Vec<usize> {
     let mut stones = vec![stone];
@@ -11,23 +13,56 @@ pub fn blink_stone_times(stone: usize, times: usize) -> Vec<usize> {
     stones
 }
 
-pub fn count_stones_with_blinks(blinks: usize, stones: Vec<usize>) -> usize {
+pub fn count_stones_with_blinks(blinks: usize, stones: Vec<usize>, cache: &BlinkCache) -> usize {
     let mut count = 0;
     let mut remaining = stones.clone();
-    count_stones_with_acc(blinks, &mut remaining, &mut count);
+    let mut unique_stones = HashSet::new();
+    count_stones_with_acc(
+        blinks,
+        &cache,
+        &mut remaining,
+        &mut count,
+        &mut unique_stones,
+    );
     count
 }
 
-fn count_stones_with_acc(blinks: usize, stones: &mut Vec<usize>, count: &mut usize) {
+fn count_stones_with_acc(
+    blinks: usize,
+    cache: &BlinkCache,
+    stones: &mut Vec<usize>,
+    count: &mut usize,
+    unique_stones: &mut HashSet<usize>,
+) {
     if blinks == 0 {
-        *count += stones.len();
-        if *count % 10_000_000 == 0 {
-            println!("Count: {count}")
+        let before = *count;
+        let after = *count + stones.len();
+        *count = after;
+        if before / 10_000_000 != after / 10_000_000 {
+            let num_unique = unique_stones.len();
+            println!("Count {count}, num unique {num_unique}");
         }
         return;
     }
     while let Some(stone) = stones.pop() {
-        count_stones_with_acc(blinks - 1, &mut blink_stone(stone), count);
+        unique_stones.insert(stone);
+        if blinks >= cache.blinks() {
+            count_stones_with_acc(
+                blinks - cache.blinks(),
+                cache,
+                &mut cache.blink_stone(stone),
+                count,
+                unique_stones,
+            );
+        } else {
+            count_stones_with_acc(
+                blinks - 1,
+                cache,
+                &mut blink_stone(stone),
+                count,
+                unique_stones,
+            );
+        }
     }
 }
 

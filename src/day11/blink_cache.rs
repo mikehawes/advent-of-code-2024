@@ -3,15 +3,21 @@ use std::collections::HashMap;
 
 pub struct BlinkCache {
     result_by_stone: HashMap<usize, Vec<usize>>,
-    times: usize,
+    blinks: usize,
 }
 
 impl BlinkCache {
-    pub fn with_times(times: usize) -> BlinkCache {
+    pub fn precompute(blinks: usize, max_stone: usize) -> BlinkCache {
+        let result_by_stone: HashMap<usize, Vec<usize>> = (0..max_stone)
+            .map(|stone| (stone, blink_stone_times(stone, blinks)))
+            .collect();
         BlinkCache {
-            result_by_stone: HashMap::new(),
-            times,
+            result_by_stone,
+            blinks,
         }
+    }
+    pub fn blinks(&self) -> usize {
+        self.blinks
     }
     pub fn blink(&mut self, stones: &[usize]) -> Vec<usize> {
         stones
@@ -19,10 +25,12 @@ impl BlinkCache {
             .flat_map(|stone| self.blink_stone(*stone).clone())
             .collect()
     }
-    fn blink_stone(&mut self, stone: usize) -> &Vec<usize> {
-        self.result_by_stone
-            .entry(stone)
-            .or_insert_with(|| blink_stone_times(stone, self.times))
+    pub fn blink_stone(&self, stone: usize) -> Vec<usize> {
+        if let Some(result) = self.result_by_stone.get(&stone) {
+            result.clone()
+        } else {
+            blink_stone_times(stone, self.blinks)
+        }
     }
 }
 
@@ -32,7 +40,7 @@ mod tests {
 
     #[test]
     fn can_blink_5_times() {
-        let mut cache = BlinkCache::with_times(5);
-        assert_eq!(cache.blink(&[0]), vec![4048, 1, 4048, 8096])
+        let cache = BlinkCache::precompute(5, 5_000);
+        assert_eq!(cache.blink_stone(0), vec![4048, 1, 4048, 8096])
     }
 }
