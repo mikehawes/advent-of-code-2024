@@ -1,5 +1,6 @@
 use crate::day11::blink_cache::BlinkCache;
 use crate::day11::digits::{count_digits, split_even_digits};
+use std::time::Instant;
 
 pub fn blink_stones(stones: Vec<usize>) -> Vec<usize> {
     stones
@@ -15,12 +16,14 @@ pub fn count_stones_with_blinks(
 ) -> usize {
     let mut count = 0;
     let mut remaining = stones.clone();
-    count_stones_with_acc(blinks, cache, &mut remaining, &mut count);
+    let start = Instant::now();
+    count_stones_with_acc(blinks, &start, cache, &mut remaining, &mut count);
     count
 }
 
 fn count_stones_with_acc(
     blinks: usize,
+    start_time: &Instant,
     cache: &mut BlinkCache,
     stones: &mut Vec<usize>,
     count: &mut usize,
@@ -32,10 +35,17 @@ fn count_stones_with_acc(
             *count = after;
             if before / 1_000_000_000_000 != after / 1_000_000_000_000 {
                 let num_unique = cache.unique_stones();
-                println!("Count {count}, num unique cached {num_unique}");
+                let duration = start_time.elapsed();
+                println!("Count {count}, num unique cached {num_unique}, time {duration:?}");
             }
         } else {
-            count_stones_with_acc(blinks - 1, cache, &mut blink_stone(stone), count);
+            count_stones_with_acc(
+                blinks - 1,
+                start_time,
+                cache,
+                &mut blink_stone(stone),
+                count,
+            );
         }
     }
 }
