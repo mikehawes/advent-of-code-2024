@@ -1,6 +1,7 @@
-use crate::day11::blink::count_stones_with_blinks;
+use crate::day11::blink::blink_stone;
 use crate::day11::blink_cache::BlinkCache;
 use std::str::FromStr;
+use std::time::Instant;
 
 #[derive(Clone)]
 pub struct Stones {
@@ -26,6 +27,29 @@ impl Stones {
     ) -> usize {
         count_stones_with_blinks(times, self.stones.clone(), cache)
     }
+}
+
+fn count_stones_with_blinks(blinks: usize, stones: Vec<usize>, cache: &mut BlinkCache) -> usize {
+    let mut count = 0;
+    let start_time = Instant::now();
+    let mut stack = vec![(blinks, stones)];
+    while let Some((blinks, stones)) = stack.pop() {
+        for stone in stones {
+            if let Some(stone_count) = cache.count_for_stone(stone, blinks) {
+                let before = count;
+                count = before + stone_count;
+                if before / 1_000_000_000_000 != count / 1_000_000_000_000 {
+                    let num_unique = cache.unique_stones();
+                    let depth = stack.len();
+                    let duration = start_time.elapsed();
+                    println!("Count {count}, num unique cached {num_unique}, stack depth {depth}, time {duration:?}");
+                }
+            } else {
+                stack.push((blinks - 1, blink_stone(stone)));
+            }
+        }
+    }
+    count
 }
 
 #[cfg(test)]
