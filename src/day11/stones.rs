@@ -18,14 +18,7 @@ impl Stones {
     }
     pub fn count_stones_after_blinks(&self, times: usize) -> usize {
         let mut cache = BlinkCache::for_blinks(25);
-        self.count_stones_after_blinks_with_cache(times, &mut cache)
-    }
-    pub fn count_stones_after_blinks_with_cache(
-        &self,
-        times: usize,
-        cache: &mut BlinkCache,
-    ) -> usize {
-        count_stones_with_blinks(times, self.stones.clone(), cache)
+        count_stones_with_blinks(times, self.stones.clone(), &mut cache)
     }
 }
 
@@ -55,7 +48,7 @@ fn count_stones_with_blinks(blinks: usize, stones: Vec<usize>, cache: &mut Blink
 #[cfg(test)]
 mod tests {
     use crate::day11::blink_cache::BlinkCache;
-    use crate::day11::stones::Stones;
+    use crate::day11::stones::{count_stones_with_blinks, Stones};
 
     #[test]
     fn can_parse_stones() {
@@ -116,7 +109,7 @@ mod tests {
 
     fn count_stones_after_blinks(stones: &Stones, blinks: usize) -> usize {
         let mut cache = BlinkCache::for_blinks(10);
-        stones.count_stones_after_blinks_with_cache(blinks, &mut cache)
+        count_stones_with_blinks(blinks, stones.stones.clone(), &mut cache)
     }
 
     fn print(stones: &Stones) -> String {
