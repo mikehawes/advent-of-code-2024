@@ -1,4 +1,4 @@
-use crate::day11::blink::{blink_stone_times, count_stones_with_blinks};
+use crate::day11::blink::count_stones_with_blinks;
 use crate::day11::blink_cache::BlinkCache;
 use std::str::FromStr;
 
@@ -16,20 +16,15 @@ impl Stones {
         Stones { stones }
     }
     pub fn count_stones_after_blinks(&self, times: usize) -> usize {
-        let cache = BlinkCache::precompute(5, 100_000);
-        println!("Precomputed cache");
-        self.count_stones_after_blinks_with_cache(times, &cache)
+        let mut cache = BlinkCache::for_blinks(25);
+        self.count_stones_after_blinks_with_cache(times, &mut cache)
     }
-    pub fn count_stones_after_blinks_with_cache(&self, times: usize, cache: &BlinkCache) -> usize {
+    pub fn count_stones_after_blinks_with_cache(
+        &self,
+        times: usize,
+        cache: &mut BlinkCache,
+    ) -> usize {
         count_stones_with_blinks(times, self.stones.clone(), cache)
-    }
-    fn blink_times(&self, times: usize) -> Stones {
-        let stones = self
-            .stones
-            .iter()
-            .flat_map(|stone| blink_stone_times(*stone, times))
-            .collect();
-        Stones { stones }
     }
 }
 
@@ -42,34 +37,6 @@ mod tests {
     fn can_parse_stones() {
         let stones = Stones::parse("0 1 10 99 999");
         assert_eq!(print(&stones), "0 1 10 99 999")
-    }
-
-    #[test]
-    fn can_blink_once_first_example() {
-        let stones = Stones::parse("0 1 10 99 999");
-        assert_eq!(print(&stones.blink_times(1)), "1 2024 1 0 9 9 2021976")
-    }
-
-    #[test]
-    fn can_blink_second_example() {
-        let stones = Stones::parse("125 17");
-        let blinks: Vec<String> = [0, 1, 2, 3, 4, 5, 6]
-            .iter()
-            .map(|blinks| stones.blink_times(*blinks))
-            .map(|stones| print(&stones))
-            .collect();
-        assert_eq!(
-            blinks,
-            vec![
-                "125 17",
-                "253000 1 7",
-                "253 0 2024 14168",
-                "512072 1 20 24 28676032",
-                "512 72 2024 2 0 2 4 2867 6032",
-                "1036288 7 2 20 24 4048 1 4048 8096 28 67 60 32",
-                "2097446912 14168 4048 2 0 2 4 40 48 2024 40 48 80 96 2 8 6 7 6 0 3 2"
-            ]
-        )
     }
 
     #[test]
@@ -123,33 +90,9 @@ mod tests {
         )
     }
 
-    #[test]
-    fn can_blink_zero() {
-        let stones = Stones::parse("0");
-        let blinks: Vec<String> = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            .iter()
-            .map(|blinks| stones.blink_times(*blinks))
-            .map(|stones| print(&stones))
-            .collect();
-        assert_eq!(
-            blinks,
-            vec!["0",
-                 "1",
-                 "2024",
-                 "20 24",
-                 "2 0 2 4",
-                 "4048 1 4048 8096",
-                 "40 48 2024 40 48 80 96",
-                 "4 0 4 8 20 24 4 0 4 8 8 0 9 6",
-                 "8096 1 8096 16192 2 0 2 4 8096 1 8096 16192 16192 1 18216 12144",
-                 "80 96 2024 80 96 32772608 4048 1 4048 8096 80 96 2024 80 96 32772608 32772608 2024 36869184 24579456",
-                 "8 0 9 6 20 24 8 0 9 6 3277 2608 40 48 2024 40 48 80 96 8 0 9 6 20 24 8 0 9 6 3277 2608 3277 2608 20 24 3686 9184 2457 9456"]
-        )
-    }
-
     fn count_stones_after_blinks(stones: &Stones, blinks: usize) -> usize {
-        let cache = BlinkCache::precompute(5, 1_000);
-        stones.count_stones_after_blinks_with_cache(blinks, &cache)
+        let mut cache = BlinkCache::for_blinks(10);
+        stones.count_stones_after_blinks_with_cache(blinks, &mut cache)
     }
 
     fn print(stones: &Stones) -> String {
