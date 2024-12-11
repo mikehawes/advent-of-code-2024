@@ -15,39 +15,25 @@ pub fn count_stones_with_blinks(
     cache: &mut BlinkCache,
 ) -> usize {
     let mut count = 0;
-    let mut remaining = stones.clone();
-    let start = Instant::now();
-    count_stones_with_acc(blinks, &start, cache, &mut remaining, &mut count);
-    count
-}
-
-fn count_stones_with_acc(
-    blinks: usize,
-    start_time: &Instant,
-    cache: &mut BlinkCache,
-    stones: &mut Vec<usize>,
-    count: &mut usize,
-) {
-    while let Some(stone) = stones.pop() {
-        if let Some(stone_count) = cache.counts_for_stone(stone).get(blinks) {
-            let before = *count;
-            let after = before + stone_count;
-            *count = after;
-            if before / 1_000_000_000_000 != after / 1_000_000_000_000 {
-                let num_unique = cache.unique_stones();
-                let duration = start_time.elapsed();
-                println!("Count {count}, num unique cached {num_unique}, time {duration:?}");
+    let start_time = Instant::now();
+    let mut stack = vec![(blinks, stones)];
+    while let Some((blinks, mut stones)) = stack.pop() {
+        while let Some(stone) = stones.pop() {
+            if let Some(stone_count) = cache.counts_for_stone(stone).get(blinks) {
+                let before = count;
+                count = before + stone_count;
+                if before / 1_000_000_000_000 != count / 1_000_000_000_000 {
+                    let num_unique = cache.unique_stones();
+                    let depth = stack.len();
+                    let duration = start_time.elapsed();
+                    println!("Count {count}, num unique cached {num_unique}, stack depth {depth}, time {duration:?}");
+                }
+            } else {
+                stack.push((blinks - 1, blink_stone(stone)));
             }
-        } else {
-            count_stones_with_acc(
-                blinks - 1,
-                start_time,
-                cache,
-                &mut blink_stone(stone),
-                count,
-            );
         }
     }
+    count
 }
 
 pub fn blink_stone(stone: usize) -> Vec<usize> {
