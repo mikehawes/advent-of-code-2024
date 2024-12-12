@@ -1,4 +1,4 @@
-use crate::day12::garden_map::{GardenMap, Point};
+use crate::day12::garden_map::{Edge, GardenMap, Point};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -14,9 +14,10 @@ impl Region {
     pub fn fencing_price(&self) -> usize {
         self.area * self.perimeter
     }
+    pub fn fencing_price_bulk_discount(&self) -> usize {
+        self.area * self.sides
+    }
 }
-
-type Edge = (Point, Point);
 
 pub fn build_regions(map: &GardenMap) -> Vec<Region> {
     let mut point_to_region_number = HashMap::new();
@@ -79,7 +80,7 @@ fn map_region(
 ) {
     point_to_region_number.insert(point, region.number);
     region.area += 1;
-    for adjacent in adjacent_points(point, map) {
+    for adjacent in adjacent_points(point) {
         if !map.is_on_map(adjacent) {
             edges.insert(edge(point, adjacent));
             continue;
@@ -117,37 +118,33 @@ fn remove_side_edges(edge: &Edge, map: &GardenMap, remaining: &mut HashSet<Edge>
     true
 }
 
-fn adjacent_points(point: Point, map: &GardenMap) -> Vec<Point> {
-    let (x, y) = point;
+fn adjacent_points(point: Point) -> Vec<Point> {
+    let [x, y] = point;
     vec![
-        (map.add_x_for_edge(x, 1), y),
-        (x, map.add_y_for_edge(y, 1)),
-        (map.sub_x_for_edge(x, 1), y),
-        (x, map.sub_y_for_edge(y, 1)),
+        [x + 1, y],
+        [x, y + 1],
+        [x.wrapping_sub(1), y],
+        [x, y.wrapping_sub(1)],
     ]
 }
 
 fn edge(a: Point, b: Point) -> Edge {
     let mut points = [a, b];
     points.sort();
-    (points[0], points[1])
+    points
 }
 
 fn adjacent_edges(from: &Edge, map: &GardenMap) -> Vec<Edge> {
-    let ((x1, y1), (x2, y2)) = from;
-    if x1 == x2 {
-        let x = *x1;
-        vec![
-            edge((x, map.sub_y_for_edge(*y1, 1)), (x, *y1)),
-            edge((x, *y2), (x, map.add_y_for_edge(*y2, 1))),
-        ]
-    } else {
-        let y = *y1;
-        vec![
-            edge((map.sub_x_for_edge(*x1, 1), y), (*x1, y)),
-            edge((*x2, y), (map.add_x_for_edge(*x2, 1), y)),
-        ]
+    let [[x1, _], [x2, _]] = from;
+    let dim_index = if x1 == x2 { 0 } else { 1 };
+    let mut edges = Vec::with_capacity(2);
+    for edge in [map.dec_edge(from, dim_index), map.inc_edge(from, dim_index)]
+        .into_iter()
+        .flatten()
+    {
+        edges.push(edge);
     }
+    edges
 }
 
 #[cfg(test)]
@@ -188,10 +185,7 @@ mod tests {
         let map = GardenMap::parse(string);
 
         assert_eq!(
-            build_regions(&map)
-                .iter()
-                .map(|region| (region.plant, region.area))
-                .collect::<Vec<(char, usize)>>(),
+            extract_regions(&map, |region| (region.plant, region.area)),
             vec![('A', 4), ('B', 4), ('C', 4), ('D', 1), ('E', 3)]
         )
     }
@@ -206,16 +200,12 @@ mod tests {
         let map = GardenMap::parse(string);
 
         assert_eq!(
-            build_regions(&map)
-                .iter()
-                .map(|region| (region.plant, region.perimeter))
-                .collect::<Vec<(char, usize)>>(),
+            extract_regions(&map, |region| (region.plant, region.perimeter)),
             vec![('A', 10), ('B', 8), ('C', 10), ('D', 4), ('E', 8)]
         )
     }
 
     #[test]
-    #[ignore]
     fn can_get_region_sides_for_first_example() {
         let string = "\
             AAAA\n\
@@ -225,25 +215,60 @@ mod tests {
         let map = GardenMap::parse(string);
 
         assert_eq!(
-            build_regions(&map)
-                .iter()
-                .map(|region| (region.plant, region.sides))
-                .collect::<Vec<(char, usize)>>(),
+            extract_regions(&map, |region| (region.plant, region.sides)),
             vec![('A', 4), ('B', 4), ('C', 8), ('D', 4), ('E', 4)]
         )
+    }
+
+    #[test]
+    fn can_get_sides_for_square() {
+        let string = "\
+            AA\n\
+            AA\n";
+        let map = GardenMap::parse(string);
+
+        assert_eq!(
+            extract_regions(&map, |region| (region.plant, region.sides)),
+            vec![('A', 4)]
+        )
+    }
+
+    #[test]
+    fn can_get_regions_for_e() {
+        let string = "\
+            EEEEE\n\
+            EXXXX\n\
+            EEEEE\n\
+            EXXXX\n\
+            EEEEE\n";
+        let map = GardenMap::parse(string);
+
+        assert_eq!(
+            extract_regions(&map, |region| (
+                region.plant,
+                region.area,
+                region.perimeter,
+                region.sides
+            )),
+            vec![('E', 17, 36, 12), ('X', 4, 10, 4), ('X', 4, 10, 4)]
+        )
+    }
+
+    fn extract_regions<T>(map: &GardenMap, extract: fn(&Region) -> T) -> Vec<T> {
+        build_regions(map).iter().map(extract).collect()
     }
 
     fn print_region_numbers(point_to_region_number: &HashMap<Point, usize>) -> String {
         let mut width = 0;
         let mut height = 0;
-        for (x, y) in point_to_region_number.keys() {
+        for [x, y] in point_to_region_number.keys() {
             width = max(width, *x);
             height = max(height, *y);
         }
         let mut str = String::new();
         for y in 0..=height {
             for x in 0..=width {
-                let region_number = point_to_region_number[&(x, y)];
+                let region_number = point_to_region_number[&[x, y]];
                 str.push_str(&region_number.to_string());
             }
             str.push('\n');
