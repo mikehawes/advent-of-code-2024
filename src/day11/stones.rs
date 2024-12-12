@@ -1,7 +1,6 @@
 use crate::day11::blink::blink_stone;
-use crate::day11::blink_cache::BlinkCache;
+use std::collections::HashMap;
 use std::str::FromStr;
-use std::time::Instant;
 
 #[derive(Clone)]
 pub struct Stones {
@@ -17,37 +16,38 @@ impl Stones {
         Stones { stones }
     }
     pub fn count_stones_after_blinks(&self, times: usize) -> usize {
-        let mut cache = BlinkCache::for_blinks(25);
-        count_stones_with_blinks(times, self.stones.clone(), &mut cache)
+        count_stones_with_blinks(times, &self.stones)
     }
 }
 
-fn count_stones_with_blinks(blinks: usize, stones: Vec<usize>, cache: &mut BlinkCache) -> usize {
-    let mut count = 0;
-    let start_time = Instant::now();
-    let mut stack = vec![(blinks, stones)];
-    while let Some((blinks, stones)) = stack.pop() {
-        for stone in stones {
-            if let Some(stone_count) = cache.count_for_stone(stone, blinks) {
-                let before = count;
-                count = before + stone_count;
-                if before / 1_000_000_000_000 != count / 1_000_000_000_000 {
-                    let num_unique = cache.unique_stones();
-                    let depth = stack.len();
-                    let duration = start_time.elapsed();
-                    println!("Count {count}, num unique cached {num_unique}, stack depth {depth}, time {duration:?}");
-                }
-            } else {
-                stack.push((blinks - 1, blink_stone(stone)));
-            }
+fn count_stones_with_blinks(blinks: usize, stones: &Vec<usize>) -> usize {
+    let mut stone_counts = to_stone_counts(stones);
+    for _ in 0..blinks {
+        stone_counts = blink_with_counts(&stone_counts);
+    }
+    stone_counts.values().sum()
+}
+
+fn to_stone_counts(stones: &Vec<usize>) -> HashMap<usize, usize> {
+    let mut with_counts = HashMap::new();
+    for stone in stones {
+        *with_counts.entry(*stone).or_insert(0) += 1;
+    }
+    with_counts
+}
+
+fn blink_with_counts(stone_counts: &HashMap<usize, usize>) -> HashMap<usize, usize> {
+    let mut new_counts = HashMap::new();
+    for (stone, count) in stone_counts {
+        for new_stone in blink_stone(*stone) {
+            *new_counts.entry(new_stone).or_insert(0) += count;
         }
     }
-    count
+    new_counts
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::day11::blink_cache::BlinkCache;
     use crate::day11::stones::{count_stones_with_blinks, Stones};
 
     #[test]
@@ -108,8 +108,7 @@ mod tests {
     }
 
     fn count_stones_after_blinks(stones: &Stones, blinks: usize) -> usize {
-        let mut cache = BlinkCache::for_blinks(10);
-        count_stones_with_blinks(blinks, stones.stones.clone(), &mut cache)
+        count_stones_with_blinks(blinks, &stones.stones)
     }
 
     fn print(stones: &Stones) -> String {

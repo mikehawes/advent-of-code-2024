@@ -1,12 +1,5 @@
 use crate::day11::digits::{count_digits, split_even_digits};
 
-pub fn blink_stones(stones: Vec<usize>) -> Vec<usize> {
-    stones
-        .iter()
-        .flat_map(|stone| blink_stone(*stone))
-        .collect()
-}
-
 pub fn blink_stone(stone: usize) -> Vec<usize> {
     let digits = count_digits(stone);
     match stone {
