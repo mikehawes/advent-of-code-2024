@@ -41,6 +41,32 @@ impl GardenMap {
     pub(crate) fn points(&self) -> impl Iterator<Item = Point> + use<'_> {
         (0..self.height).flat_map(|y| (0..self.width).map(move |x| (x, y)))
     }
+    pub(crate) fn sub_x_for_edge(&self, x: usize, sub: usize) -> usize {
+        self.overflow_x(x.wrapping_sub(sub))
+    }
+    pub(crate) fn add_x_for_edge(&self, x: usize, add: usize) -> usize {
+        self.overflow_x(x.wrapping_add(add))
+    }
+    pub(crate) fn sub_y_for_edge(&self, y: usize, sub: usize) -> usize {
+        self.overflow_y(y.wrapping_sub(sub))
+    }
+    pub(crate) fn add_y_for_edge(&self, y: usize, add: usize) -> usize {
+        self.overflow_y(y.wrapping_add(add))
+    }
+    fn overflow_x(&self, x: usize) -> usize {
+        if x > self.width {
+            usize::MAX
+        } else {
+            x
+        }
+    }
+    fn overflow_y(&self, y: usize) -> usize {
+        if y > self.height {
+            usize::MAX
+        } else {
+            y
+        }
+    }
 }
 
 pub(crate) type Point = (usize, usize);
