@@ -115,6 +115,32 @@ mod tests {
         assert_eq!(map.sum_fencing_price_bulk_discount(), 80)
     }
 
+    #[test]
+    fn can_bulk_price_fencing_for_e() {
+        let string = "\
+            EEEEE\n\
+            EXXXX\n\
+            EEEEE\n\
+            EXXXX\n\
+            EEEEE\n";
+        let map = GardenMap::parse(string);
+        assert_eq!(map.sum_fencing_price_bulk_discount(), 236)
+    }
+
+    #[test]
+    #[ignore]
+    fn can_bulk_price_fencing_when_touching_diagonally() {
+        let string = "\
+            AAAAAA\n\
+            AAABBA\n\
+            AAABBA\n\
+            ABBAAA\n\
+            ABBAAA\n\
+            AAAAAA\n";
+        let map = GardenMap::parse(string);
+        assert_eq!(map.sum_fencing_price_bulk_discount(), 368)
+    }
+
     fn print(map: &GardenMap) -> String {
         let mut str = String::new();
         for line in map.plots.iter() {

@@ -254,6 +254,27 @@ mod tests {
         )
     }
 
+    #[test]
+    fn can_get_regions_when_touching_diagonally() {
+        let string = "\
+            AAAAAA\n\
+            AAABBA\n\
+            AAABBA\n\
+            ABBAAA\n\
+            ABBAAA\n\
+            AAAAAA\n";
+        let map = GardenMap::parse(string);
+        assert_eq!(
+            extract_regions(&map, |region| (
+                region.plant,
+                region.area,
+                region.perimeter,
+                region.sides
+            )),
+            vec![('A', 28, 40, 10), ('B', 4, 8, 4), ('B', 4, 8, 4)]
+        )
+    }
+
     fn extract_regions<T>(map: &GardenMap, extract: fn(&Region) -> T) -> Vec<T> {
         build_regions(map).iter().map(extract).collect()
     }
