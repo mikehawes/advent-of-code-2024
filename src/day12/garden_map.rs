@@ -1,3 +1,5 @@
+use crate::day12::edge::{along_dim_index, edge, Edge};
+use crate::day12::point::Point;
 use crate::day12::region::build_regions;
 
 pub struct GardenMap {
@@ -77,25 +79,6 @@ impl GardenMap {
             self.height
         }
     }
-}
-
-pub(crate) type Point = [usize; 2];
-
-pub(crate) type Edge = [Point; 2];
-
-fn along_dim_index(edge: &Edge) -> usize {
-    let [[x1, _], [x2, _]] = edge;
-    if x1 == x2 {
-        0
-    } else {
-        1
-    }
-}
-
-pub(crate) fn edge(a: Point, b: Point) -> Edge {
-    let mut points = [a, b];
-    points.sort();
-    points
 }
 
 #[cfg(test)]

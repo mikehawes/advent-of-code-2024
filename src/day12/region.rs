@@ -1,4 +1,6 @@
-use crate::day12::garden_map::{edge, Edge, GardenMap, Point};
+use crate::day12::edge::{adjacent_edges, edge, Edge};
+use crate::day12::garden_map::GardenMap;
+use crate::day12::point::{adjacent_points, Point};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -123,36 +125,10 @@ fn remove_side_edges(
     true
 }
 
-fn adjacent_points(point: Point) -> Vec<Point> {
-    let [x, y] = point;
-    vec![
-        [x + 1, y],
-        [x, y + 1],
-        [x.wrapping_sub(1), y],
-        [x, y.wrapping_sub(1)],
-    ]
-}
-
-fn adjacent_edges(from: &Edge, region_edges: &HashSet<Edge>, map: &GardenMap) -> Vec<Edge> {
-    let mut edges = Vec::with_capacity(2);
-    for direction in [-1, 1] {
-        if map
-            .obstructing_edges(from, direction)
-            .iter()
-            .any(|obstruction| region_edges.contains(obstruction))
-        {
-            continue;
-        }
-        if let Some(adjacent) = map.adjacent_edge(from, direction) {
-            edges.push(adjacent);
-        }
-    }
-    edges
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::day12::point::Point;
     use std::cmp::max;
 
     #[test]
