@@ -47,29 +47,34 @@ impl GardenMap {
     pub(crate) fn points(&self) -> impl Iterator<Item = Point> + use<'_> {
         (0..self.height).flat_map(|y| (0..self.width).map(move |x| [x, y]))
     }
-
-    pub(crate) fn inc_edge(&self, edge: &Edge, dim_index: usize) -> Option<Edge> {
-        self.acc_edge(edge, dim_index, 1)
-    }
-
-    pub(crate) fn dec_edge(&self, edge: &Edge, dim_index: usize) -> Option<Edge> {
-        self.acc_edge(edge, dim_index, -1)
-    }
-
-    fn acc_edge(&self, edge: &Edge, dim_index: usize, inc: isize) -> Option<Edge> {
-        let limit = if dim_index == 0 {
-            self.width
-        } else {
-            self.height
-        };
-        let new_value = edge[0][dim_index].wrapping_add_signed(inc);
-        let mut new_edge = *edge;
-        new_edge[0][dim_index] = new_value;
-        new_edge[1][dim_index] = new_value;
-        if new_value > limit && new_value < usize::MAX {
+    pub(crate) fn adjacent_edge(&self, from: &Edge, direction: isize) -> Option<Edge> {
+        let along_dim = along_dim_index(from);
+        let new_value = from[0][along_dim].wrapping_add_signed(direction);
+        let mut new_edge = *from;
+        new_edge[0][along_dim] = new_value;
+        new_edge[1][along_dim] = new_value;
+        if self.is_outside_limits(along_dim, new_value) {
             None
         } else {
             Some(new_edge)
+        }
+    }
+    pub(crate) fn obstructing_edges(&self, from: &Edge, direction: isize) -> Vec<Edge> {
+        let along_dim = along_dim_index(from);
+        let mut end_0 = from[0];
+        end_0[along_dim] = end_0[along_dim].wrapping_add_signed(direction);
+        let mut end_1 = from[1];
+        end_1[along_dim] = end_1[along_dim].wrapping_add_signed(direction);
+        vec![edge(from[0], end_0), edge(from[1], end_1)]
+    }
+    fn is_outside_limits(&self, dim_index: usize, value: usize) -> bool {
+        value > self.dim_index_limit(dim_index) && value < usize::MAX
+    }
+    fn dim_index_limit(&self, dim_index: usize) -> usize {
+        if dim_index == 0 {
+            self.width
+        } else {
+            self.height
         }
     }
 }
@@ -77,6 +82,21 @@ impl GardenMap {
 pub(crate) type Point = [usize; 2];
 
 pub(crate) type Edge = [Point; 2];
+
+fn along_dim_index(edge: &Edge) -> usize {
+    let [[x1, _], [x2, _]] = edge;
+    if x1 == x2 {
+        0
+    } else {
+        1
+    }
+}
+
+pub(crate) fn edge(a: Point, b: Point) -> Edge {
+    let mut points = [a, b];
+    points.sort();
+    points
+}
 
 #[cfg(test)]
 mod tests {
@@ -128,7 +148,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn can_bulk_price_fencing_when_touching_diagonally() {
         let string = "\
             AAAAAA\n\

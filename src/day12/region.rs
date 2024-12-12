@@ -1,4 +1,4 @@
-use crate::day12::garden_map::{Edge, GardenMap, Point};
+use crate::day12::garden_map::{edge, Edge, GardenMap, Point};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Eq, PartialEq)]
@@ -101,19 +101,24 @@ fn count_sides(edges: &HashSet<Edge>, map: &GardenMap) -> usize {
     let mut remaining = edges.clone();
     let mut count = 0;
     for edge in edges {
-        if remove_side_edges(edge, map, &mut remaining) {
+        if remove_side_edges(edge, map, edges, &mut remaining) {
             count += 1;
         }
     }
     count
 }
 
-fn remove_side_edges(edge: &Edge, map: &GardenMap, remaining: &mut HashSet<Edge>) -> bool {
+fn remove_side_edges(
+    edge: &Edge,
+    map: &GardenMap,
+    region_edges: &HashSet<Edge>,
+    remaining: &mut HashSet<Edge>,
+) -> bool {
     if !remaining.remove(edge) {
         return false;
     }
-    for adjacent in adjacent_edges(edge, map) {
-        remove_side_edges(&adjacent, map, remaining);
+    for adjacent in adjacent_edges(edge, region_edges, map) {
+        remove_side_edges(&adjacent, map, region_edges, remaining);
     }
     true
 }
@@ -128,21 +133,19 @@ fn adjacent_points(point: Point) -> Vec<Point> {
     ]
 }
 
-fn edge(a: Point, b: Point) -> Edge {
-    let mut points = [a, b];
-    points.sort();
-    points
-}
-
-fn adjacent_edges(from: &Edge, map: &GardenMap) -> Vec<Edge> {
-    let [[x1, _], [x2, _]] = from;
-    let dim_index = if x1 == x2 { 0 } else { 1 };
+fn adjacent_edges(from: &Edge, region_edges: &HashSet<Edge>, map: &GardenMap) -> Vec<Edge> {
     let mut edges = Vec::with_capacity(2);
-    for edge in [map.dec_edge(from, dim_index), map.inc_edge(from, dim_index)]
-        .into_iter()
-        .flatten()
-    {
-        edges.push(edge);
+    for direction in [-1, 1] {
+        if map
+            .obstructing_edges(from, direction)
+            .iter()
+            .any(|obstruction| region_edges.contains(obstruction))
+        {
+            continue;
+        }
+        if let Some(adjacent) = map.adjacent_edge(from, direction) {
+            edges.push(adjacent);
+        }
     }
     edges
 }
@@ -271,7 +274,7 @@ mod tests {
                 region.perimeter,
                 region.sides
             )),
-            vec![('A', 28, 40, 10), ('B', 4, 8, 4), ('B', 4, 8, 4)]
+            vec![('A', 28, 40, 12), ('B', 4, 8, 4), ('B', 4, 8, 4)]
         )
     }
 
