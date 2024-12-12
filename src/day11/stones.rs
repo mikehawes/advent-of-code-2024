@@ -48,7 +48,7 @@ fn blink_with_counts(stone_counts: &HashMap<usize, usize>) -> HashMap<usize, usi
 
 #[cfg(test)]
 mod tests {
-    use crate::day11::stones::{count_stones_with_blinks, Stones};
+    use crate::day11::stones::Stones;
 
     #[test]
     fn can_parse_stones() {
@@ -108,7 +108,7 @@ mod tests {
     }
 
     fn count_stones_after_blinks(stones: &Stones, blinks: usize) -> usize {
-        count_stones_with_blinks(blinks, &stones.stones)
+        stones.count_stones_after_blinks(blinks)
     }
 
     fn print(stones: &Stones) -> String {
