@@ -1,5 +1,5 @@
 use crate::day12::garden_map::{GardenMap, Point};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Region {
@@ -14,6 +14,8 @@ impl Region {
         self.area * self.perimeter
     }
 }
+
+type Edge = (Point, Point);
 
 pub fn build_regions(map: &GardenMap) -> Vec<Region> {
     let mut point_to_region_number = HashMap::new();
@@ -53,7 +55,15 @@ fn map_region_from(
         area: 0,
         perimeter: 0,
     };
-    map_region(start_point, &mut region, map, point_to_region_number);
+    let mut edges = HashSet::new();
+    map_region(
+        start_point,
+        &mut region,
+        map,
+        point_to_region_number,
+        &mut edges,
+    );
+    region.perimeter = edges.len();
     region
 }
 
@@ -62,12 +72,13 @@ fn map_region(
     region: &mut Region,
     map: &GardenMap,
     point_to_region_number: &mut HashMap<Point, usize>,
+    edges: &mut HashSet<Edge>,
 ) {
     point_to_region_number.insert(point, region.number);
     region.area += 1;
     for adjacent in adjacent_points(point) {
         if !map.is_on_map(adjacent) {
-            region.perimeter += 1;
+            edges.insert(edge(point, adjacent));
             continue;
         }
         let adjacent_plant = map.plant_at(adjacent);
@@ -75,9 +86,9 @@ fn map_region(
             if point_to_region_number.contains_key(&adjacent) {
                 continue;
             }
-            map_region(adjacent, region, map, point_to_region_number);
+            map_region(adjacent, region, map, point_to_region_number, edges);
         } else {
-            region.perimeter += 1;
+            edges.insert(edge(point, adjacent));
         }
     }
 }
@@ -90,6 +101,12 @@ fn adjacent_points(point: Point) -> Vec<Point> {
         (x.wrapping_sub(1), y),
         (x, y.wrapping_sub(1)),
     ]
+}
+
+fn edge(a: Point, b: Point) -> Edge {
+    let mut points = [a, b];
+    points.sort();
+    (points[0], points[1])
 }
 
 #[cfg(test)]
