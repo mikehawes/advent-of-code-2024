@@ -5,13 +5,13 @@ use std::collections::HashMap;
 pub struct Region {
     number: usize,
     plant: char,
-    plots: usize,
-    edges: usize,
+    area: usize,
+    perimeter: usize,
 }
 
 impl Region {
     pub fn fencing_price(&self) -> usize {
-        self.plots * self.edges
+        self.area * self.perimeter
     }
 }
 
@@ -50,8 +50,8 @@ fn map_region_from(
     let mut region = Region {
         number,
         plant,
-        plots: 0,
-        edges: 0,
+        area: 0,
+        perimeter: 0,
     };
     map_region(start_point, &mut region, map, point_to_region_number);
     region
@@ -64,10 +64,10 @@ fn map_region(
     point_to_region_number: &mut HashMap<Point, usize>,
 ) {
     point_to_region_number.insert(point, region.number);
-    region.plots += 1;
+    region.area += 1;
     for adjacent in adjacent_points(point) {
         if !map.is_on_map(adjacent) {
-            region.edges += 1;
+            region.perimeter += 1;
             continue;
         }
         let adjacent_plant = map.plant_at(adjacent);
@@ -77,7 +77,7 @@ fn map_region(
             }
             map_region(adjacent, region, map, point_to_region_number);
         } else {
-            region.edges += 1;
+            region.perimeter += 1;
         }
     }
 }
@@ -122,7 +122,6 @@ mod tests {
 
     #[test]
     fn can_get_region_details_for_first_example() {
-        // Given
         let string = "\
             AAAA\n\
             BBCD\n\
@@ -130,42 +129,38 @@ mod tests {
             EEEC\n";
         let map = GardenMap::parse(string);
 
-        // When
-        let regions = build_regions(&map);
-
-        // Then
         assert_eq!(
-            regions,
+            build_regions(&map),
             vec![
                 Region {
                     number: 0,
                     plant: 'A',
-                    plots: 4,
-                    edges: 10
+                    area: 4,
+                    perimeter: 10
                 },
                 Region {
                     number: 1,
                     plant: 'B',
-                    plots: 4,
-                    edges: 8
+                    area: 4,
+                    perimeter: 8
                 },
                 Region {
                     number: 2,
                     plant: 'C',
-                    plots: 4,
-                    edges: 10
+                    area: 4,
+                    perimeter: 10
                 },
                 Region {
                     number: 3,
                     plant: 'D',
-                    plots: 1,
-                    edges: 4
+                    area: 1,
+                    perimeter: 4
                 },
                 Region {
                     number: 4,
                     plant: 'E',
-                    plots: 3,
-                    edges: 8
+                    area: 3,
+                    perimeter: 8
                 }
             ]
         )
