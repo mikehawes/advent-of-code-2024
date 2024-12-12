@@ -1,6 +1,7 @@
 use crate::day12::garden_map::{GardenMap, Point};
 use std::collections::HashMap;
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct Region {
     number: usize,
     plant: char,
@@ -117,6 +118,57 @@ mod tests {
             1122\n\
             4442\n";
         assert_eq!(print_region_numbers(&point_to_region_number), expected)
+    }
+
+    #[test]
+    fn can_get_region_details_for_first_example() {
+        // Given
+        let string = "\
+            AAAA\n\
+            BBCD\n\
+            BBCC\n\
+            EEEC\n";
+        let map = GardenMap::parse(string);
+
+        // When
+        let regions = build_regions(&map);
+
+        // Then
+        assert_eq!(
+            regions,
+            vec![
+                Region {
+                    number: 0,
+                    plant: 'A',
+                    plots: 4,
+                    edges: 10
+                },
+                Region {
+                    number: 1,
+                    plant: 'B',
+                    plots: 4,
+                    edges: 8
+                },
+                Region {
+                    number: 2,
+                    plant: 'C',
+                    plots: 4,
+                    edges: 10
+                },
+                Region {
+                    number: 3,
+                    plant: 'D',
+                    plots: 1,
+                    edges: 4
+                },
+                Region {
+                    number: 4,
+                    plant: 'E',
+                    plots: 3,
+                    edges: 8
+                }
+            ]
+        )
     }
 
     fn print_region_numbers(point_to_region_number: &HashMap<Point, usize>) -> String {
