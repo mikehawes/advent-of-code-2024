@@ -29,6 +29,12 @@ impl ClawMachines {
             .map(|machine| machine.min_tokens_to_win())
             .sum()
     }
+    pub fn sum_min_tokens_with_unit_conversion(&self) -> usize {
+        self.machines
+            .iter()
+            .map(|machine| machine.min_tokens_to_win_with_inc(10000000000000))
+            .sum()
+    }
 }
 
 fn parse_captures(regex: &Regex, string: &str) -> Vec<[usize; 2]> {
@@ -53,5 +59,12 @@ mod tests {
         let string = input_to_string("day13/example.txt").unwrap();
         let machines = ClawMachines::parse(string.as_str());
         assert_eq!(machines.sum_min_tokens(), 480)
+    }
+
+    #[test]
+    fn can_sum_tokens_for_example_with_unit_conversion() {
+        let string = input_to_string("day13/example.txt").unwrap();
+        let machines = ClawMachines::parse(string.as_str());
+        assert_eq!(machines.sum_min_tokens_with_unit_conversion(), 875318608908)
     }
 }
