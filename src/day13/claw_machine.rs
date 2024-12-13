@@ -1,4 +1,4 @@
-use crate::day13::line_intersection::Point;
+use crate::day13::line_intersection::{find_units_along_each_line, Point};
 
 pub struct ClawMachine {
     pub button_a_vector: ButtonVector,
@@ -7,23 +7,29 @@ pub struct ClawMachine {
 }
 
 impl ClawMachine {
-    pub fn min_a_b_presses_to_win(&self) -> [usize; 2] {
-        let [a_x, a_y] = self.button_a_vector;
-        let [b_x, b_y] = self.button_b_vector;
-        let [prize_x, prize_y] = self.prize_location;
-        for a in 0..=100 {
-            let after_a = [a_x * a, a_y * a];
-            let remaining = [prize_x - after_a[0], prize_y - after_a[1]];
-            if remaining[0] % b_x == 0 && remaining[1] % b_y == 0 {
-                let b = remaining[0] / b_x;
-                return [a, b];
-            }
-        }
-        [0, 0]
-    }
     pub fn min_tokens_to_win(&self) -> usize {
-        let [a, b] = self.min_a_b_presses_to_win();
-        a * 3 + b
+        let a_first = self
+            .find_presses(self.button_a_vector, self.button_b_vector)
+            .map(|[a, b]| a * 3 + b);
+        let b_first = self
+            .find_presses(self.button_b_vector, self.button_a_vector)
+            .map(|[b, a]| a * 3 + b);
+        [a_first, b_first]
+            .iter()
+            .flatten()
+            .min()
+            .copied()
+            .unwrap_or(0)
+    }
+    fn find_presses(
+        &self,
+        from_origin: ButtonVector,
+        to_prize: ButtonVector,
+    ) -> Option<[usize; 2]> {
+        let prize = self.prize_location;
+        let line_1 = [[0, 0], from_origin];
+        let line_2 = [prize, [prize[0] - to_prize[0], prize[1] - to_prize[1]]];
+        find_units_along_each_line(&line_1, &line_2)
     }
 }
 
@@ -34,13 +40,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn can_find_presses() {
+    fn can_find_min_tokens() {
         let machine = ClawMachine {
             button_a_vector: [94, 34],
             button_b_vector: [22, 67],
             prize_location: [8400, 5400],
         };
-        assert_eq!(machine.min_a_b_presses_to_win(), [80, 40]);
         assert_eq!(machine.min_tokens_to_win(), 280);
     }
 }
