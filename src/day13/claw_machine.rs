@@ -1,11 +1,11 @@
 pub struct ClawMachine {
-    button_a_vector: ButtonVector,
-    button_b_vector: ButtonVector,
-    prize_location: Location,
+    pub button_a_vector: ButtonVector,
+    pub button_b_vector: ButtonVector,
+    pub prize_location: Location,
 }
 
 impl ClawMachine {
-    pub(crate) fn min_a_b_presses_to_win(&self) -> [usize; 2] {
+    pub fn min_a_b_presses_to_win(&self) -> [usize; 2] {
         let [a_x, a_y] = self.button_a_vector;
         let [b_x, b_y] = self.button_b_vector;
         let [prize_x, prize_y] = self.prize_location;
@@ -19,11 +19,15 @@ impl ClawMachine {
         }
         [0, 0]
     }
+    pub fn min_tokens_to_win(&self) -> usize {
+        let [a, b] = self.min_a_b_presses_to_win();
+        a * 3 + b
+    }
 }
 
-type ButtonVector = [usize; 2];
+pub type ButtonVector = [usize; 2];
 
-type Location = [usize; 2];
+pub type Location = [usize; 2];
 
 #[cfg(test)]
 mod tests {
@@ -37,5 +41,6 @@ mod tests {
             prize_location: [8400, 5400],
         };
         assert_eq!(machine.min_a_b_presses_to_win(), [80, 40]);
+        assert_eq!(machine.min_tokens_to_win(), 280);
     }
 }
