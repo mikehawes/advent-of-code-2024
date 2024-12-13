@@ -1,7 +1,9 @@
+use crate::day13::line_intersection::Point;
+
 pub struct ClawMachine {
     pub button_a_vector: ButtonVector,
     pub button_b_vector: ButtonVector,
-    pub prize_location: Location,
+    pub prize_location: Point,
 }
 
 impl ClawMachine {
@@ -26,8 +28,6 @@ impl ClawMachine {
 }
 
 pub type ButtonVector = [usize; 2];
-
-pub type Location = [usize; 2];
 
 #[cfg(test)]
 mod tests {
