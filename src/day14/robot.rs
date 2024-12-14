@@ -33,6 +33,35 @@ impl Robot {
     }
 }
 
+pub fn move_for_seconds(robots: &[Robot], floor: FloorSize, seconds: usize) -> Vec<Robot> {
+    let width = floor[0] as isize;
+    let height = floor[1] as isize;
+    robots
+        .iter()
+        .map(|robot| {
+            let [x, y] = robot.position;
+            let [vx, vy] = robot.velocity;
+            let new_x_wrapping = x as isize + seconds as isize * vx;
+            let new_y_wrapping = y as isize + seconds as isize * vy;
+            let new_x = wrapping_to_pos(new_x_wrapping, width);
+            let new_y = wrapping_to_pos(new_y_wrapping, height);
+            Robot {
+                position: [new_x, new_y],
+                velocity: robot.velocity,
+            }
+        })
+        .collect()
+}
+
+fn wrapping_to_pos(wrapping: isize, length: isize) -> usize {
+    let remainder = wrapping % length;
+    if remainder >= 0 {
+        remainder as usize
+    } else {
+        (length + remainder) as usize
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,7 +73,17 @@ mod tests {
     fn can_parse_robots() {
         let string = input_to_string("day14/example.txt").unwrap();
         let robots = Robot::parse_vec(&string);
-        assert_snapshot!(print(&robots, [11, 7]))
+        let floor = [11, 7];
+        assert_snapshot!(print(&robots, floor))
+    }
+
+    #[test]
+    fn can_move_for_100_seconds() {
+        let string = input_to_string("day14/example.txt").unwrap();
+        let robots = Robot::parse_vec(&string);
+        let floor = [11, 7];
+        let after = move_for_seconds(&robots, floor, 100);
+        assert_snapshot!(print(&after, floor))
     }
 
     fn print(robots: &Vec<Robot>, floor: FloorSize) -> String {
