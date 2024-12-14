@@ -1,4 +1,4 @@
-use crate::day14::robot::{move_for_seconds, FloorSize, Robot};
+use crate::day14::robot::{move_for_seconds, print_robots, FloorSize, Robot};
 use crate::day14::safety_factor::safety_factor;
 
 pub struct Robots {
@@ -14,6 +14,21 @@ impl Robots {
     pub fn safety_factor_after_seconds(&self, seconds: usize, floor: FloorSize) -> usize {
         let robots = move_for_seconds(&self.robots, floor, seconds);
         safety_factor(&robots, floor)
+    }
+    pub fn print_at_times<T>(
+        &self,
+        times: T,
+        floor: FloorSize,
+    ) -> impl Iterator<Item = (usize, String)> + use<'_, T>
+    where
+        T: Iterator<Item = usize>,
+    {
+        times.map(move |time| {
+            (
+                time,
+                print_robots(&move_for_seconds(&self.robots, floor, time), floor),
+            )
+        })
     }
 }
 
