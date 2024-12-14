@@ -1,2 +1,2 @@
+mod robot;
 pub mod robots;
-pub mod tile_floor;
