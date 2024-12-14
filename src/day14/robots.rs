@@ -1,4 +1,5 @@
-use crate::day14::robot::{FloorSize, Robot};
+use crate::day14::robot::{move_for_seconds, FloorSize, Robot};
+use crate::day14::safety_factor::safety_factor;
 
 pub struct Robots {
     robots: Vec<Robot>,
@@ -10,8 +11,9 @@ impl Robots {
             robots: Robot::parse_vec(string),
         }
     }
-    pub fn safety_factor_after_seconds(&self, _: usize, _: FloorSize) -> usize {
-        0
+    pub fn safety_factor_after_seconds(&self, seconds: usize, floor: FloorSize) -> usize {
+        let robots = move_for_seconds(&self.robots, floor, seconds);
+        safety_factor(&robots, floor)
     }
 }
 
@@ -25,6 +27,6 @@ mod tests {
         let string = input_to_string("day14/example.txt").unwrap();
         let robots = Robots::parse(&string);
         let floor = [11, 7];
-        assert_eq!(robots.safety_factor_after_seconds(100, floor), 0)
+        assert_eq!(robots.safety_factor_after_seconds(100, floor), 12)
     }
 }

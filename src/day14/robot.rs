@@ -31,6 +31,12 @@ impl Robot {
             velocity: [vx, vy],
         }
     }
+    pub fn before_mid(&self, floor: FloorSize, dimension: usize) -> bool {
+        self.position[dimension] < floor[dimension] / 2
+    }
+    pub fn after_mid(&self, floor: FloorSize, dimension: usize) -> bool {
+        self.position[dimension] > floor[dimension] / 2
+    }
 }
 
 pub fn move_for_seconds(robots: &[Robot], floor: FloorSize, seconds: usize) -> Vec<Robot> {
