@@ -12,6 +12,8 @@ pub type Velocity = [isize; 2];
 
 pub type FloorSize = [usize; 2];
 
+pub type SignedFloorSize = [isize; 2];
+
 impl Robot {
     pub fn parse_vec(string: &str) -> Vec<Robot> {
         let regex = Regex::new(r"p=([0-9]+),([0-9]+) v=([\-0-9]+),([\-0-9]+)").unwrap();
@@ -40,32 +42,43 @@ impl Robot {
 }
 
 pub fn move_for_seconds(robots: &[Robot], floor: FloorSize, seconds: usize) -> Vec<Robot> {
-    let width = floor[0] as isize;
-    let height = floor[1] as isize;
+    let signed_floor = signed_floor_size(floor);
     robots
         .iter()
-        .map(|robot| {
-            let [x, y] = robot.position;
-            let [vx, vy] = robot.velocity;
-            let new_x_wrapping = x as isize + seconds as isize * vx;
-            let new_y_wrapping = y as isize + seconds as isize * vy;
-            let new_x = wrapping_to_pos(new_x_wrapping, width);
-            let new_y = wrapping_to_pos(new_y_wrapping, height);
-            Robot {
-                position: [new_x, new_y],
-                velocity: robot.velocity,
-            }
-        })
+        .map(|robot| move_robot_for_seconds(robot, &signed_floor, seconds))
         .collect()
 }
 
-fn wrapping_to_pos(wrapping: isize, length: isize) -> usize {
+fn move_robot_for_seconds(robot: &Robot, floor: &SignedFloorSize, seconds: usize) -> Robot {
+    let mut position = [0, 0];
+    for i in 0..2 {
+        position[i] =
+            move_dimension_for_seconds(robot.position[i], robot.velocity[i], floor[i], seconds);
+    }
+    Robot {
+        position,
+        velocity: robot.velocity,
+    }
+}
+
+fn move_dimension_for_seconds(
+    position: usize,
+    velocity: isize,
+    length: isize,
+    seconds: usize,
+) -> usize {
+    let wrapping = position as isize + seconds as isize * velocity;
     let remainder = wrapping % length;
     if remainder >= 0 {
         remainder as usize
     } else {
         (length + remainder) as usize
     }
+}
+
+fn signed_floor_size(floor_size: FloorSize) -> SignedFloorSize {
+    let [width, height] = floor_size;
+    [width as isize, height as isize]
 }
 
 #[cfg(test)]
