@@ -1,6 +1,6 @@
 ---
-source: src/day14/robots.rs
-assertion_line: 29
+source: src/day14/robot.rs
+assertion_line: 36
 expression: "print(&robots, [11, 7])"
 snapshot_kind: text
 ---

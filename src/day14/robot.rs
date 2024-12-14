@@ -5,25 +5,37 @@ pub struct Robot {
 
 pub type Position = [usize; 2];
 
-pub type Velocity = [usize; 2];
+pub type Velocity = [isize; 2];
 
 pub type FloorSize = [usize; 2];
 
 impl Robot {
-    pub fn parse(_: &str) -> Robot {
+    fn parse(_: &str) -> Robot {
         Robot {
             position: [0, 0],
             velocity: [0, 0],
         }
     }
+    pub fn parse_vec(string: &str) -> Vec<Robot> {
+        string.lines().map(Robot::parse).collect()
+    }
 }
 
 #[cfg(test)]
-pub(crate) mod tests {
+mod tests {
     use super::*;
+    use crate::input::input_to_string;
+    use insta::assert_snapshot;
     use std::collections::HashMap;
 
-    pub fn print(robots: &Vec<Robot>, floor: FloorSize) -> String {
+    #[test]
+    fn can_print_robots() {
+        let string = input_to_string("day14/example.txt").unwrap();
+        let robots = Robot::parse_vec(&string);
+        assert_snapshot!(print(&robots, [11, 7]))
+    }
+
+    fn print(robots: &Vec<Robot>, floor: FloorSize) -> String {
         let mut position_to_count: HashMap<Position, usize> = HashMap::new();
         for robot in robots {
             position_to_count

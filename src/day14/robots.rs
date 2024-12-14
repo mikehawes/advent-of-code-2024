@@ -6,8 +6,9 @@ pub struct Robots {
 
 impl Robots {
     pub fn parse(string: &str) -> Robots {
-        let robots = string.lines().map(Robot::parse).collect();
-        Robots { robots }
+        Robots {
+            robots: Robot::parse_vec(string),
+        }
     }
     pub fn safety_factor_after_seconds(&self, _: usize, _: FloorSize) -> usize {
         0
@@ -16,20 +17,14 @@ impl Robots {
 
 #[cfg(test)]
 mod tests {
-    use crate::day14::robot;
-    use crate::day14::robot::FloorSize;
     use crate::day14::robots::Robots;
     use crate::input::input_to_string;
-    use insta::assert_snapshot;
 
     #[test]
-    fn can_print_robots() {
+    fn can_find_safety_factor_for_example() {
         let string = input_to_string("day14/example.txt").unwrap();
         let robots = Robots::parse(&string);
-        assert_snapshot!(print(&robots, [11, 7]))
-    }
-
-    fn print(robots: &Robots, floor: FloorSize) -> String {
-        robot::tests::print(&robots.robots, floor)
+        let floor = [11, 7];
+        assert_eq!(robots.safety_factor_after_seconds(100, floor), 0)
     }
 }
