@@ -1,13 +1,13 @@
-use crate::day15::warehouse_map::WarehouseMap;
+use crate::day15::warehouse::Warehouse;
 
 pub struct RobotPlan {
-    warehouse: WarehouseMap,
+    warehouse: Warehouse,
 }
 
 impl RobotPlan {
     pub fn parse(string: &str) -> RobotPlan {
         let parts: Vec<&str> = string.split("\n\n").collect();
-        let warehouse = WarehouseMap::parse(parts[0]);
+        let warehouse = Warehouse::parse(parts[0]);
         RobotPlan { warehouse }
     }
     pub fn sum_gps_coordinates_at_end(&self) -> usize {
@@ -18,7 +18,7 @@ impl RobotPlan {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::day15::warehouse_map;
+    use crate::day15::warehouse;
     use crate::input::input_to_string;
     use insta::assert_snapshot;
 
@@ -30,6 +30,6 @@ mod tests {
     }
 
     fn print_at_start(plan: &RobotPlan) -> String {
-        warehouse_map::tests::print(&plan.warehouse)
+        warehouse::tests::print(&plan.warehouse)
     }
 }
