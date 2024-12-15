@@ -124,6 +124,24 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
+    fn can_push_big_boxes_down() {
+        let string = "\
+            .@..\n\
+            .[].\n\
+            []..\n\
+            ..[]";
+        let before = Warehouse::parse(string);
+        let after = before.move_robot(Down);
+        let expected = "\
+            ....\n\
+            .@..\n\
+            .[].\n\
+            [][]";
+        assert_eq!(print(&after), expected)
+    }
+
+    #[test]
     fn can_stop_at_wall() {
         let before = Warehouse::parse("@#");
         let after = before.move_robot(Right);
