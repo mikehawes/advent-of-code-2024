@@ -6,7 +6,7 @@ const ROBOT: char = '@';
 type Point = [usize; 2];
 
 #[derive(Copy, Clone)]
-enum Direction {
+pub enum Direction {
     Up,
     Right,
     Left,
@@ -126,7 +126,7 @@ fn map_walls_and_boxes(tiles: &[Vec<char>]) -> Vec<Vec<char>> {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
     use crate::day15::warehouse_map::Direction::{Down, Left, Right, Up};
 
@@ -208,7 +208,7 @@ mod tests {
         assert_eq!(print(&moved), "@O\n")
     }
 
-    fn print(map: &WarehouseMap) -> String {
+    pub fn print(map: &WarehouseMap) -> String {
         let mut string = "".to_string();
         for y in 0..map.height {
             for x in 0..map.width {
