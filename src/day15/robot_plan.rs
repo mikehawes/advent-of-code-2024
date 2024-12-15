@@ -1,5 +1,6 @@
-use crate::day15::warehouse::Direction::{Down, Left, Right, Up};
-use crate::day15::warehouse::{Direction, Warehouse};
+use crate::day15::move_robot::Direction;
+use crate::day15::move_robot::Direction::{Down, Left, Right, Up};
+use crate::day15::warehouse::Warehouse;
 
 pub struct RobotPlan {
     warehouse: Warehouse,

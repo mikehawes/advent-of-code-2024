@@ -1,0 +1,132 @@
+use crate::day15::warehouse::{Warehouse, BOX, EMPTY, WALL};
+
+#[derive(Copy, Clone)]
+pub enum Direction {
+    Up,
+    Right,
+    Left,
+    Down,
+}
+
+pub fn move_robot(warehouse: &Warehouse, direction: Direction) -> Warehouse {
+    let new_position = next_point(warehouse.robot_position(), direction);
+    let mut new_map = warehouse.clone();
+    if !warehouse.is_on_map(new_position) {
+        return new_map;
+    }
+    match warehouse.tile(new_position) {
+        BOX => {
+            if move_boxes(&mut new_map, new_position, direction) {
+                new_map.set_robot(new_position);
+            }
+        }
+        WALL => {}
+        _ => new_map.set_robot(new_position),
+    }
+    new_map
+}
+
+fn move_boxes(
+    warehouse: &mut Warehouse,
+    first_box: crate::day15::warehouse::Point,
+    direction: Direction,
+) -> bool {
+    let mut point = first_box;
+    loop {
+        point = next_point(point, direction);
+        if !warehouse.is_on_map(point) {
+            return false;
+        }
+        match warehouse.tile(point) {
+            BOX => {}
+            WALL => return false,
+            _ => {
+                warehouse.write_tile(point, BOX);
+                warehouse.write_tile(first_box, EMPTY);
+                return true;
+            }
+        }
+    }
+}
+
+fn next_point(
+    point: crate::day15::warehouse::Point,
+    direction: Direction,
+) -> crate::day15::warehouse::Point {
+    let [x, y] = point;
+    match direction {
+        Direction::Up => [x, y.wrapping_sub(1)],
+        Direction::Down => [x, y + 1],
+        Direction::Left => [x.wrapping_sub(1), y],
+        Direction::Right => [x + 1, y],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::day15::move_robot::Direction::{Down, Left, Right, Up};
+    use crate::day15::warehouse::tests::print;
+
+    #[test]
+    fn can_move_robot() {
+        let string = "\
+            ...\n\
+            .@.\n\
+            ...\n";
+        let before = Warehouse::parse(string);
+        let after = [Up, Down, Left, Right].map(|d| print(&before.move_robot(d)));
+        assert_eq!(
+            after,
+            [
+                ".@.\n\
+                 ...\n\
+                 ...\n",
+                "...\n\
+                 ...\n\
+                 .@.\n",
+                "...\n\
+                 @..\n\
+                 ...\n",
+                "...\n\
+                 ..@\n\
+                 ...\n"
+            ]
+        )
+    }
+
+    #[test]
+    fn can_push_boxes() {
+        let before = Warehouse::parse("@OO.");
+        let after = before.move_robot(Right);
+        assert_eq!(print(&after), ".@OO\n")
+    }
+
+    #[test]
+    fn can_stop_at_wall() {
+        let before = Warehouse::parse("@#");
+        let after = before.move_robot(Right);
+        assert_eq!(print(&after), "@#\n")
+    }
+
+    #[test]
+    fn can_stop_at_edge() {
+        let before = Warehouse::parse("@");
+        let after = before.move_robot(Right);
+        assert_eq!(print(&after), "@\n")
+    }
+
+    #[test]
+    fn can_stop_pushing_at_wall() {
+        let before = Warehouse::parse("@O#");
+        let after = before.move_robot(Right);
+        assert_eq!(print(&after), "@O#\n")
+    }
+
+    #[test]
+    fn can_stop_pushing_at_edge() {
+        let before = Warehouse::parse("@O");
+        let after = before.move_robot(Right);
+        assert_eq!(print(&after), "@O\n")
+    }
+}
