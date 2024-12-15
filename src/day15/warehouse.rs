@@ -42,6 +42,17 @@ impl Warehouse {
             .map(gps_coordinate)
             .sum()
     }
+    pub fn scale_up(&self) -> Warehouse {
+        let tiles = self.tiles.iter().map(scale_up_line).collect();
+        let [x, y] = self.robot_position;
+        let robot_position = [x * 2, y];
+        Warehouse {
+            tiles,
+            width: self.width * 2,
+            height: self.height,
+            robot_position,
+        }
+    }
     fn contents(&self, point: Point) -> char {
         if point == self.robot_position {
             ROBOT
@@ -92,9 +103,21 @@ fn gps_coordinate(point: Point) -> usize {
     point[1] * 100 + point[0]
 }
 
+fn scale_up_line(line: &Vec<char>) -> Vec<char> {
+    line.iter()
+        .map(|c| match *c {
+            BOX => "[]",
+            WALL => "##",
+            _ => "..",
+        })
+        .flat_map(|str| str.chars())
+        .collect()
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use insta::assert_snapshot;
 
     #[test]
     fn can_parse_map() {
@@ -125,6 +148,21 @@ pub mod tests {
             #..@...\n";
         let warehouse = Warehouse::parse(string);
         assert_eq!(warehouse.sum_gps_coordinates(), 210)
+    }
+
+    #[test]
+    fn can_scale_up() {
+        let string = "\
+            ########\n\
+            #..O.O.#\n\
+            ##@.O..#\n\
+            #...O..#\n\
+            #.#.O..#\n\
+            #...O..#\n\
+            #......#\n\
+            ########\n";
+        let warehouse = Warehouse::parse(string);
+        assert_snapshot!(print(&warehouse.scale_up()))
     }
 
     pub fn print(warehouse: &Warehouse) -> String {

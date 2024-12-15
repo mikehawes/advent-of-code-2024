@@ -1,0 +1,14 @@
+---
+source: src/day15/warehouse.rs
+assertion_line: 165
+expression: print(&warehouse.scale_up())
+snapshot_kind: text
+---
+################
+##....[]..[]..##
+####@...[]....##
+##......[]....##
+##..##..[]....##
+##......[]....##
+##............##
+################
