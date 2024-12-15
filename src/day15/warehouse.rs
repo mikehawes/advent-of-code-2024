@@ -1,4 +1,5 @@
 use crate::day15::move_robot::{move_robot, Direction};
+use crate::day15::warehouse_box::WarehouseBox;
 use std::collections::{HashMap, HashSet};
 
 pub const WALL: char = '#';
@@ -15,7 +16,8 @@ pub struct Warehouse {
     width: usize,
     height: usize,
     robot_position: Point,
-    box_position_to_char: HashMap<Point, char>,
+    boxes: Vec<WarehouseBox>,
+    position_to_box_num: HashMap<Point, usize>,
     walls: HashSet<Point>,
 }
 
@@ -24,12 +26,15 @@ impl Warehouse {
         let map: Vec<Vec<char>> = string.lines().map(|line| line.chars().collect()).collect();
         let width = map.first().map(|line| line.len()).unwrap_or(0);
         let height = map.len();
+        let boxes = find_boxes(&map, width, height);
+        let position_to_box_num = index_point_to_box_number(&boxes);
         Warehouse {
             width,
             height,
             walls: map_walls(&map, width, height),
             robot_position: find_robot(&map, width, height),
-            box_position_to_char: find_boxes(&map, width, height),
+            boxes,
+            position_to_box_num,
         }
     }
     pub fn move_robot(&self, direction: Direction) -> Warehouse {
@@ -46,12 +51,15 @@ impl Warehouse {
             .sum()
     }
     pub fn scale_up(&self) -> Warehouse {
+        let boxes = scale_up_boxes(&self.boxes);
+        let position_to_box_num = index_point_to_box_number(&boxes);
         Warehouse {
-            walls: scale_up_walls(&self.walls),
             width: self.width * 2,
             height: self.height,
+            walls: scale_up_walls(&self.walls),
             robot_position: scale_up_robot(self.robot_position),
-            box_position_to_char: scale_up_boxes(&self.box_position_to_char),
+            boxes,
+            position_to_box_num,
         }
     }
     fn contents(&self, point: Point) -> char {
@@ -61,14 +69,25 @@ impl Warehouse {
             self.tile(point)
         }
     }
+    pub fn box_at(&self, point: Point) -> Option<&WarehouseBox> {
+        self.position_to_box_num
+            .get(&point)
+            .map(|number| &self.boxes[*number])
+    }
     pub fn tile(&self, point: Point) -> char {
-        *self.box_position_to_char.get(&point).unwrap_or_else(|| {
-            if self.walls.contains(&point) {
-                &WALL
-            } else {
-                &EMPTY
-            }
-        })
+        self.position_to_box_num
+            .get(&point)
+            .map(|number| self.boxes[*number].char_at(point))
+            .unwrap_or_else(|| {
+                if self.walls.contains(&point) {
+                    WALL
+                } else {
+                    EMPTY
+                }
+            })
+    }
+    pub fn is_wall(&self, point: Point) -> bool {
+        self.walls.contains(&point)
     }
     pub fn is_on_map(&self, point: Point) -> bool {
         let [x, y] = point;
@@ -77,15 +96,18 @@ impl Warehouse {
     pub fn set_robot(&mut self, position: Point) {
         self.robot_position = position;
     }
-    pub fn write_tile(&mut self, point: Point, contents: char) {
-        match contents {
-            BOX | BOX_LEFT | BOX_RIGHT => {
-                self.box_position_to_char.insert(point, contents);
+    pub fn move_boxes(&mut self, numbers: &HashSet<usize>, direction: Direction) {
+        for number in numbers {
+            for point in self.boxes[*number].points_iter() {
+                self.position_to_box_num.remove(&point);
             }
-            EMPTY => {
-                self.box_position_to_char.remove(&point);
+        }
+        for number in numbers {
+            let b = self.boxes.get_mut(*number).unwrap();
+            *b = b.move_dir(direction);
+            for point in b.points_iter() {
+                self.position_to_box_num.insert(point, *number);
             }
-            _ => {}
         }
     }
 }
@@ -97,9 +119,18 @@ fn find_robot(tiles: &[Vec<char>], width: usize, height: usize) -> Point {
         .unwrap_or([width, height])
 }
 
-fn find_boxes(tiles: &[Vec<char>], width: usize, height: usize) -> HashMap<Point, char> {
+fn find_boxes(tiles: &[Vec<char>], width: usize, height: usize) -> Vec<WarehouseBox> {
     position_tiles(tiles, width, height)
         .filter(|(_, tile)| [BOX, BOX_LEFT, BOX_RIGHT].contains(tile))
+        .enumerate()
+        .map(|(number, (point, tile))| WarehouseBox::from_tile_at_point(number, tile, point))
+        .collect()
+}
+
+fn index_point_to_box_number(boxes: &[WarehouseBox]) -> HashMap<Point, usize> {
+    boxes
+        .iter()
+        .flat_map(|b| b.points_iter().map(|point| (point, b.number())))
         .collect()
 }
 
@@ -133,11 +164,8 @@ fn scale_up_walls(walls: &HashSet<Point>) -> HashSet<Point> {
         .collect()
 }
 
-fn scale_up_boxes(box_position_to_char: &HashMap<Point, char>) -> HashMap<Point, char> {
-    box_position_to_char
-        .keys()
-        .flat_map(|[x, y]| [([*x * 2, *y], BOX_LEFT), ([*x * 2 + 1, *y], BOX_RIGHT)])
-        .collect()
+fn scale_up_boxes(boxes: &[WarehouseBox]) -> Vec<WarehouseBox> {
+    boxes.iter().map(|b| b.scale_up()).collect()
 }
 
 fn scale_up_robot(position: Point) -> Point {

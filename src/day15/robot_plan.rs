@@ -20,6 +20,12 @@ impl RobotPlan {
     pub fn sum_gps_coordinates_at_end(&self) -> usize {
         self.follow().sum_gps_coordinates()
     }
+    pub fn scale_up(&self) -> RobotPlan {
+        RobotPlan {
+            warehouse: self.warehouse.scale_up(),
+            directions: self.directions.clone(),
+        }
+    }
     fn follow(&self) -> Warehouse {
         let mut warehouse = self.warehouse.clone();
         for direction in self.directions.iter() {
@@ -73,6 +79,13 @@ mod tests {
         let string = input_to_string("day15/example.txt").unwrap();
         let plan = RobotPlan::parse(&string);
         assert_snapshot!(print_warehouse(&plan.follow()))
+    }
+
+    #[test]
+    fn can_follow_scaled_up_larger_plan() {
+        let string = input_to_string("day15/example.txt").unwrap();
+        let plan = RobotPlan::parse(&string);
+        assert_snapshot!(print_warehouse(&plan.scale_up().follow()))
     }
 
     fn print_at_start(plan: &RobotPlan) -> String {

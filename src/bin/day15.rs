@@ -5,4 +5,5 @@ fn main() {
     let input = input_to_string("day15/input.txt").unwrap();
     let plan = RobotPlan::parse(input.as_str());
     println!("Part 1: {}", plan.sum_gps_coordinates_at_end());
+    println!("Part 2: {}", plan.scale_up().sum_gps_coordinates_at_end());
 }
