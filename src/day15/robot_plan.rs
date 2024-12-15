@@ -1,5 +1,5 @@
 use crate::day15::warehouse::Direction::{Down, Left, Right, Up};
-use crate::day15::warehouse::{move_robot, Direction, Warehouse};
+use crate::day15::warehouse::{Direction, Warehouse};
 
 pub struct RobotPlan {
     warehouse: Warehouse,
@@ -17,12 +17,12 @@ impl RobotPlan {
         }
     }
     pub fn sum_gps_coordinates_at_end(&self) -> usize {
-        0
+        self.follow().sum_gps_coordinates()
     }
     fn follow(&self) -> Warehouse {
         let mut warehouse = self.warehouse.clone();
         for direction in self.directions.iter() {
-            warehouse = move_robot(&warehouse, *direction);
+            warehouse = warehouse.move_robot(*direction);
         }
         warehouse
     }

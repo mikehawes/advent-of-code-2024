@@ -35,6 +35,30 @@ impl Warehouse {
             robot_position,
         }
     }
+    pub fn move_robot(&self, direction: Direction) -> Warehouse {
+        let new_position = next_point(self.robot_position, direction);
+        let mut new_map = self.clone();
+        if !self.is_on_map(new_position) {
+            return new_map;
+        }
+        match self.tile(new_position) {
+            BOX => {
+                if move_boxes(&mut new_map, new_position, direction) {
+                    new_map.robot_position = new_position;
+                }
+            }
+            WALL => {}
+            _ => new_map.robot_position = new_position,
+        }
+        new_map
+    }
+    pub fn sum_gps_coordinates(&self) -> usize {
+        (0..self.height)
+            .flat_map(|y| (0..self.width).map(move |x| [x, y]))
+            .filter(|point| self.contents(*point) == BOX)
+            .map(gps_coordinate)
+            .sum()
+    }
     fn contents(&self, point: Point) -> char {
         if point == self.robot_position {
             ROBOT
@@ -54,24 +78,6 @@ impl Warehouse {
         let [x, y] = point;
         self.tiles[y][x] = contents;
     }
-}
-
-pub fn move_robot(warehouse: &Warehouse, direction: Direction) -> Warehouse {
-    let new_position = next_point(warehouse.robot_position, direction);
-    let mut new_map = warehouse.clone();
-    if !warehouse.is_on_map(new_position) {
-        return new_map;
-    }
-    match warehouse.tile(new_position) {
-        BOX => {
-            if move_boxes(&mut new_map, new_position, direction) {
-                new_map.robot_position = new_position;
-            }
-        }
-        WALL => {}
-        _ => new_map.robot_position = new_position,
-    }
-    new_map
 }
 
 fn move_boxes(warehouse: &mut Warehouse, first_box: Point, direction: Direction) -> bool {
@@ -125,6 +131,10 @@ fn map_walls_and_boxes(tiles: &[Vec<char>]) -> Vec<Vec<char>> {
         .collect()
 }
 
+fn gps_coordinate(point: Point) -> usize {
+    point[1] * 100 + point[0]
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
@@ -153,7 +163,7 @@ pub mod tests {
             .@.\n\
             ...\n";
         let before = Warehouse::parse(string);
-        let after = [Up, Down, Left, Right].map(|d| print(&move_robot(&before, d)));
+        let after = [Up, Down, Left, Right].map(|d| print(&before.move_robot(d)));
         assert_eq!(
             after,
             [
@@ -176,36 +186,51 @@ pub mod tests {
     #[test]
     fn can_push_boxes() {
         let before = Warehouse::parse("@OO.");
-        let after = move_robot(&before, Right);
+        let after = before.move_robot(Right);
         assert_eq!(print(&after), ".@OO\n")
     }
 
     #[test]
     fn can_stop_at_wall() {
         let before = Warehouse::parse("@#");
-        let after = move_robot(&before, Right);
+        let after = before.move_robot(Right);
         assert_eq!(print(&after), "@#\n")
     }
 
     #[test]
     fn can_stop_at_edge() {
         let before = Warehouse::parse("@");
-        let after = move_robot(&before, Right);
+        let after = before.move_robot(Right);
         assert_eq!(print(&after), "@\n")
     }
 
     #[test]
     fn can_stop_pushing_at_wall() {
         let before = Warehouse::parse("@O#");
-        let after = move_robot(&before, Right);
+        let after = before.move_robot(Right);
         assert_eq!(print(&after), "@O#\n")
     }
 
     #[test]
     fn can_stop_pushing_at_edge() {
         let before = Warehouse::parse("@O");
-        let after = move_robot(&before, Right);
+        let after = before.move_robot(Right);
         assert_eq!(print(&after), "@O\n")
+    }
+
+    #[test]
+    fn can_find_gps_coordinate() {
+        assert_eq!(gps_coordinate([4, 1]), 104)
+    }
+
+    #[test]
+    fn can_sum_gps_coordinates() {
+        let string = "\
+            #######\n\
+            #...O.O\n\
+            #..@...\n";
+        let warehouse = Warehouse::parse(string);
+        assert_eq!(warehouse.sum_gps_coordinates(), 210)
     }
 
     pub fn print(warehouse: &Warehouse) -> String {
