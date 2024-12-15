@@ -6,7 +6,6 @@ pub const WALL: char = '#';
 pub const BOX: char = 'O';
 pub const BOX_LEFT: char = '[';
 pub const BOX_RIGHT: char = ']';
-pub const EMPTY: char = '.';
 pub const ROBOT: char = '@';
 
 pub type Point = [usize; 2];
@@ -44,9 +43,9 @@ impl Warehouse {
         self.robot_position
     }
     pub fn sum_gps_coordinates(&self) -> usize {
-        (0..self.height)
-            .flat_map(|y| (0..self.width).map(move |x| [x, y]))
-            .filter(|point| self.contents(*point) == BOX)
+        self.boxes
+            .iter()
+            .map(|b| b.position())
             .map(gps_coordinate)
             .sum()
     }
@@ -62,29 +61,10 @@ impl Warehouse {
             position_to_box_num,
         }
     }
-    fn contents(&self, point: Point) -> char {
-        if point == self.robot_position {
-            ROBOT
-        } else {
-            self.tile(point)
-        }
-    }
     pub fn box_at(&self, point: Point) -> Option<&WarehouseBox> {
         self.position_to_box_num
             .get(&point)
             .map(|number| &self.boxes[*number])
-    }
-    pub fn tile(&self, point: Point) -> char {
-        self.position_to_box_num
-            .get(&point)
-            .map(|number| self.boxes[*number].char_at(point))
-            .unwrap_or_else(|| {
-                if self.walls.contains(&point) {
-                    WALL
-                } else {
-                    EMPTY
-                }
-            })
     }
     pub fn is_wall(&self, point: Point) -> bool {
         self.walls.contains(&point)
@@ -121,7 +101,7 @@ fn find_robot(tiles: &[Vec<char>], width: usize, height: usize) -> Point {
 
 fn find_boxes(tiles: &[Vec<char>], width: usize, height: usize) -> Vec<WarehouseBox> {
     position_tiles(tiles, width, height)
-        .filter(|(_, tile)| [BOX, BOX_LEFT, BOX_RIGHT].contains(tile))
+        .filter(|(_, tile)| [BOX, BOX_LEFT].contains(tile))
         .enumerate()
         .map(|(number, (point, tile))| WarehouseBox::from_tile_at_point(number, tile, point))
         .collect()
@@ -176,6 +156,7 @@ fn scale_up_robot(position: Point) -> Point {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use crate::day15::warehouse_box;
     use insta::assert_snapshot;
 
     #[test]
@@ -203,10 +184,10 @@ pub mod tests {
     fn can_sum_gps_coordinates() {
         let string = "\
             #######\n\
-            #...O.O\n\
-            #..@...\n";
+            #...O..\n\
+            #..@.O.\n";
         let warehouse = Warehouse::parse(string);
-        assert_eq!(warehouse.sum_gps_coordinates(), 210)
+        assert_eq!(warehouse.sum_gps_coordinates(), 309)
     }
 
     #[test]
@@ -224,14 +205,36 @@ pub mod tests {
         assert_snapshot!(print(&warehouse.scale_up()))
     }
 
+    #[test]
+    fn can_sum_gps_coordinates_scaled() {
+        let string = "\
+            #######\n\
+            #...[].\n\
+            #..@.[]\n";
+        let warehouse = Warehouse::parse(string);
+        assert_eq!(warehouse.sum_gps_coordinates(), 309)
+    }
+
     pub fn print(warehouse: &Warehouse) -> String {
         let mut string = "".to_string();
         for y in 0..warehouse.height {
             for x in 0..warehouse.width {
-                string.push(warehouse.contents([x, y]));
+                string.push(contents(warehouse, [x, y]));
             }
             string.push('\n');
         }
         string
+    }
+
+    fn contents(warehouse: &Warehouse, point: Point) -> char {
+        if point == warehouse.robot_position() {
+            ROBOT
+        } else if warehouse.is_wall(point) {
+            WALL
+        } else if let Some(b) = warehouse.box_at(point) {
+            warehouse_box::tests::char_at(b, point)
+        } else {
+            '.'
+        }
     }
 }

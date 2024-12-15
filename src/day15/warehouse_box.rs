@@ -44,23 +44,15 @@ impl WarehouseBox {
     pub fn number(&self) -> usize {
         self.number
     }
+    pub fn position(&self) -> Point {
+        self.position
+    }
     pub fn scale_up(&self) -> WarehouseBox {
         let [x, y] = self.position;
         WarehouseBox {
             number: self.number,
             position: [x * 2, y],
             width: self.width * 2,
-        }
-    }
-    pub fn char_at(&self, point: Point) -> char {
-        if self.width == 1 {
-            return 'O';
-        }
-        let offset = point[0] - self.position[0];
-        if offset == 0 {
-            '['
-        } else {
-            ']'
         }
     }
     pub fn move_dir(&self, direction: Direction) -> WarehouseBox {
@@ -75,6 +67,23 @@ impl WarehouseBox {
             number: self.number,
             position,
             width: self.width,
+        }
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    pub fn char_at(b: &WarehouseBox, point: Point) -> char {
+        if b.width == 1 {
+            return 'O';
+        }
+        let offset = point[0] - b.position[0];
+        if offset == 0 {
+            '['
+        } else {
+            ']'
         }
     }
 }
