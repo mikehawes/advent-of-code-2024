@@ -56,7 +56,7 @@ impl Warehouse {
     }
 }
 
-fn move_robot(warehouse: &Warehouse, direction: Direction) -> Warehouse {
+pub fn move_robot(warehouse: &Warehouse, direction: Direction) -> Warehouse {
     let new_position = next_point(warehouse.robot_position, direction);
     let mut new_map = warehouse.clone();
     if !warehouse.is_on_map(new_position) {

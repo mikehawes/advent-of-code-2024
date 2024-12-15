@@ -1,0 +1,16 @@
+---
+source: src/day15/robot_plan.rs
+assertion_line: 74
+expression: print_at_end(&plan)
+snapshot_kind: text
+---
+##########
+#.O.O.OOO#
+#........#
+#OO......#
+#OO@.....#
+#O#.....O#
+#O.....OO#
+#O.....OO#
+#OO....OO#
+##########
