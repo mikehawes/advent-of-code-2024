@@ -2,6 +2,8 @@ use crate::day15::move_robot::{move_robot, Direction};
 
 pub const WALL: char = '#';
 pub const BOX: char = 'O';
+pub const BOX_LEFT: char = '[';
+pub const BOX_RIGHT: char = ']';
 pub const EMPTY: char = '.';
 pub const ROBOT: char = '@';
 
@@ -92,6 +94,8 @@ fn map_walls_and_boxes(tiles: &[Vec<char>]) -> Vec<Vec<char>> {
                 .map(|tile| match *tile {
                     WALL => WALL,
                     BOX => BOX,
+                    BOX_LEFT => BOX_LEFT,
+                    BOX_RIGHT => BOX_RIGHT,
                     _ => EMPTY,
                 })
                 .collect()
