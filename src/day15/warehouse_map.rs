@@ -21,7 +21,7 @@ pub struct WarehouseMap {
 }
 
 impl WarehouseMap {
-    pub fn parse_map_and_robot_position(string: &str) -> WarehouseMap {
+    pub fn parse(string: &str) -> WarehouseMap {
         let map: Vec<Vec<char>> = string.lines().map(|line| line.chars().collect()).collect();
         let width = map.first().map(|line| line.len()).unwrap_or(0);
         let height = map.len();
@@ -34,25 +34,42 @@ impl WarehouseMap {
             robot_position,
         }
     }
-    fn tile(&self, point: Point) -> char {
+    fn contents(&self, point: Point) -> char {
         if point == self.robot_position {
             ROBOT
         } else {
-            let [x, y] = point;
-            self.tiles[y][x]
+            self.tile(point)
         }
+    }
+    fn tile(&self, point: Point) -> char {
+        let [x, y] = point;
+        self.tiles[y][x]
     }
 }
 
 fn move_robot(map: &WarehouseMap, direction: Direction) -> WarehouseMap {
-    let mut map = map.clone();
-    match direction {
-        Direction::Up => map.robot_position[1] -= 1,
-        Direction::Down => map.robot_position[1] += 1,
-        Direction::Left => map.robot_position[0] -= 1,
-        Direction::Right => map.robot_position[0] += 1,
+    let [x, y] = map.robot_position;
+    let new_position = match direction {
+        Direction::Up => [x, y - 1],
+        Direction::Down => [x, y + 1],
+        Direction::Left => [x - 1, y],
+        Direction::Right => [x + 1, y],
+    };
+    let mut new_map = map.clone();
+    match map.tile(new_position) {
+        BOX => {
+            if move_boxes(&mut new_map, new_position, direction) {
+                new_map.robot_position = new_position;
+            }
+        }
+        WALL => {}
+        _ => new_map.robot_position = new_position,
     }
-    map
+    new_map
+}
+
+fn move_boxes(map: &mut WarehouseMap, point: Point, direction: Direction) -> bool {
+    false
 }
 
 fn find_robot(tiles: &[Vec<char>], width: usize, height: usize) -> Point {
@@ -93,7 +110,7 @@ mod tests {
             #...O..#\n\
             #......#\n\
             ########\n";
-        let warehouse = WarehouseMap::parse_map_and_robot_position(string);
+        let warehouse = WarehouseMap::parse(string);
         assert_eq!(print(&warehouse), string);
         assert_eq!(warehouse.robot_position, [2, 2]);
     }
@@ -104,7 +121,7 @@ mod tests {
             ...\n\
             .@.\n\
             ...\n";
-        let map = WarehouseMap::parse_map_and_robot_position(string);
+        let map = WarehouseMap::parse(string);
         let result = [Up, Down, Left, Right].map(|d| print(&move_robot(&map, d)));
         assert_eq!(
             result,
@@ -125,11 +142,26 @@ mod tests {
         )
     }
 
+    #[test]
+    #[ignore]
+    fn can_push_boxes() {
+        let map = WarehouseMap::parse("@OO.");
+        let moved = move_robot(&map, Right);
+        assert_eq!(print(&moved), ".@OO\n")
+    }
+
+    #[test]
+    fn can_stop_at_wall() {
+        let map = WarehouseMap::parse("@#");
+        let moved = move_robot(&map, Right);
+        assert_eq!(print(&moved), "@#\n")
+    }
+
     fn print(map: &WarehouseMap) -> String {
         let mut string = "".to_string();
         for y in 0..map.height {
             for x in 0..map.width {
-                string.push(map.tile([x, y]));
+                string.push(map.contents([x, y]));
             }
             string.push('\n');
         }
